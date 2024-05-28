@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: llm-rating
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: llm-battle
