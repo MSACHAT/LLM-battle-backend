@@ -7,9 +7,11 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -17,6 +19,8 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Document(collection = "votes")
 public class VoteEntity {
@@ -37,6 +41,8 @@ public class VoteEntity {
     @Setter
     @EqualsAndHashCode
     @ToString
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class States {
 
         @Field("model_name")
@@ -52,6 +58,8 @@ public class VoteEntity {
     @Setter
     @EqualsAndHashCode
     @ToString
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Message {
         private String role;
         private String content;

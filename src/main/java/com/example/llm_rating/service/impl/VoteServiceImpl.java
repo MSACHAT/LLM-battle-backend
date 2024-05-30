@@ -19,6 +19,7 @@ public class VoteServiceImpl {
 
     public Object insertVote(VoteDto data) {
         VoteEntity voteEntity = modelMapper.map(data, VoteEntity.class);
+        System.out.println(voteEntity.toString());
         Object votes = voteRepository.save(voteEntity);
         return votes;
     }
