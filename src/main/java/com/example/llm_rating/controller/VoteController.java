@@ -10,8 +10,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @AllArgsConstructor
 @RestController
@@ -20,11 +18,22 @@ public class VoteController {
 
     private VoteServiceImpl voteService;
 
-    @PostMapping("/sidebyside_anonymous")
-    public ReturnDto sidebysideAnoymous(@RequestBody VoteDto entity) {
+    @PostMapping("/sidebyside_anonymous_db")
+    public ReturnDto sidebysideAnoymousDb(@RequestBody VoteDto entity) {
         try {
             Object data = voteService.insertVote(entity);
             return new ReturnDto(true, "success", data);
+        } catch (Exception e) {
+            return new ReturnDto(false, e.getMessage(), null);
+        }
+
+    }
+
+    @PostMapping("/sidebyside_anonymous")
+    public ReturnDto sidebysideAnoymous(@RequestBody VoteDto dto) {
+        try {
+            voteService.addVoteData(dto);
+            return new ReturnDto(true, "success", null);
         } catch (Exception e) {
             return new ReturnDto(false, e.getMessage(), null);
         }
