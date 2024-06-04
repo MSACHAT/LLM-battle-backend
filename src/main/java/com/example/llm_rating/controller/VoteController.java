@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.llm_rating.dto.ReturnDto;
 import com.example.llm_rating.dto.VoteDto;
+import com.example.llm_rating.service.impl.GetLeaderboard;
 import com.example.llm_rating.service.impl.VoteServiceImpl;
 
 import lombok.AllArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class VoteController {
 
     private VoteServiceImpl voteService;
+    private GetLeaderboard getLeaderboard;
 
     @PostMapping("/sidebyside_anonymous_db")
     public ReturnDto sidebysideAnoymousDb(@RequestBody VoteDto entity) {
@@ -33,6 +35,17 @@ public class VoteController {
     public ReturnDto sidebysideAnoymous(@RequestBody VoteDto dto) {
         try {
             voteService.addVoteData(dto);
+            return new ReturnDto(true, "success", null);
+        } catch (Exception e) {
+            return new ReturnDto(false, e.getMessage(), null);
+        }
+
+    }
+
+    @PostMapping("/leaderboard")
+    public ReturnDto leaderboard() {
+        try {
+            getLeaderboard.getLeaderboard();
             return new ReturnDto(true, "success", null);
         } catch (Exception e) {
             return new ReturnDto(false, e.getMessage(), null);
