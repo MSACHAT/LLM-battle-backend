@@ -9,3 +9,5 @@ spring:
       database: llm-battle
 server:
   port: 8082
+
+
