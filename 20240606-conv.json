@@ -1,0 +1,94 @@
+[ {
+  "type" : "leftvote",
+  "tstamp" : 1703395200,
+  "convId" : null,
+  "models" : [ "AssistantModel1", "AssistantModel2" ],
+  "winner" : "AssistantModel1",
+  "anony" : true,
+  "states" : [ {
+    "modelName" : null,
+    "messages" : [ {
+      "role" : "user",
+      "content" : "What is the capital of France?"
+    }, {
+      "role" : "assistant",
+      "content" : "The capital of France is Paris."
+    } ],
+    "offset" : 0,
+    "convId" : null
+  }, {
+    "modelName" : null,
+    "messages" : [ {
+      "role" : "user",
+      "content" : "What is the capital of France?"
+    }, {
+      "role" : "assistant",
+      "content" : "France's capital city is Paris."
+    } ],
+    "offset" : 0,
+    "convId" : null
+  } ],
+  "ip" : "192.168.1.1"
+}, {
+  "type" : "leftvote",
+  "tstamp" : 1703395200,
+  "convId" : null,
+  "models" : [ "AssistantModel1", "AssistantModel2" ],
+  "winner" : "AssistantModel1",
+  "anony" : true,
+  "states" : [ {
+    "modelName" : null,
+    "messages" : [ {
+      "role" : "user",
+      "content" : "What is the capital of France?"
+    }, {
+      "role" : "assistant",
+      "content" : "The capital of France is Paris."
+    } ],
+    "offset" : 0,
+    "convId" : null
+  }, {
+    "modelName" : null,
+    "messages" : [ {
+      "role" : "user",
+      "content" : "What is the capital of France?"
+    }, {
+      "role" : "assistant",
+      "content" : "France's capital city is Paris."
+    } ],
+    "offset" : 0,
+    "convId" : null
+  } ],
+  "ip" : "192.168.1.1"
+}, {
+  "type" : "leftvote",
+  "tstamp" : 1703395200,
+  "convId" : null,
+  "models" : [ "AssistantModel1", "AssistantModel2" ],
+  "winner" : "AssistantModel1",
+  "anony" : true,
+  "states" : [ {
+    "modelName" : null,
+    "messages" : [ {
+      "role" : "user",
+      "content" : "What is the capital of France?"
+    }, {
+      "role" : "assistant",
+      "content" : "The capital of France is Paris."
+    } ],
+    "offset" : 0,
+    "convId" : null
+  }, {
+    "modelName" : null,
+    "messages" : [ {
+      "role" : "user",
+      "content" : "What is the capital of France?"
+    }, {
+      "role" : "assistant",
+      "content" : "France's capital city is Paris."
+    } ],
+    "offset" : 0,
+    "convId" : null
+  } ],
+  "ip" : "192.168.1.1"
+} ]
