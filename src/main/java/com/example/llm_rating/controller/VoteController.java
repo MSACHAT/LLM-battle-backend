@@ -1,6 +1,6 @@
 package com.example.llm_rating.controller;
 
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.llm_rating.dto.ReturnDto;
 import com.example.llm_rating.dto.VoteDto;
@@ -8,9 +8,9 @@ import com.example.llm_rating.service.impl.GetLeaderboard;
 import com.example.llm_rating.service.impl.VoteServiceImpl;
 
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @AllArgsConstructor
 @RestController
@@ -31,8 +31,8 @@ public class VoteController {
 
     }
 
-    @PostMapping("/sidebyside_anonymous")
-    public ReturnDto sidebysideAnoymous(@RequestBody VoteDto dto) {
+    @PostMapping("/sidebyside_anonymous_log")
+    public ReturnDto sidebysideAnoymousLog(@RequestBody VoteDto dto) {
         try {
             voteService.addVoteData(dto);
             return new ReturnDto(true, "success", null);
@@ -42,15 +42,32 @@ public class VoteController {
 
     }
 
-    @PostMapping("/leaderboard")
+    @PostMapping("/sidebyside_anonymous")
+    public ReturnDto sidebysideAnoymous(@RequestBody VoteDto dto) {
+        try {
+
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            String formattedDateTime = now.format(formatter);
+            String fileName = formattedDateTime+"-conv.json";
+            voteService.appendToJsonFile(fileName,dto);
+            return new ReturnDto(true,"success",null);
+        } catch (Exception e) {
+            return new ReturnDto(false,e.getMessage(),null);
+        }
+
+    }
+
+    @GetMapping("/leaderboard")
     public ReturnDto leaderboard() {
         try {
-            getLeaderboard.getLeaderboard();
-            return new ReturnDto(true, "success", null);
+           Object data = getLeaderboard.getLeaderBoard();
+            return new ReturnDto(true, "success", data);
         } catch (Exception e) {
             return new ReturnDto(false, e.getMessage(), null);
         }
 
     }
+
 
 }
