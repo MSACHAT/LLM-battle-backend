@@ -1,10 +1,11 @@
-package cn.moonshotacademy.arena.repository;
+package com.example.llm_rating.repository;
 
 import java.util.Optional;
 
+import com.example.llm_rating.model.UserEntity;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import cn.moonshotacademy.arena.entity.UserEntity;
+
 
 
 public interface UserRepository extends MongoRepository<UserEntity, String> {

@@ -1,9 +1,8 @@
-package cn.moonshotacademy.arena.service;
+package com.example.llm_rating.service;
 
+import com.example.llm_rating.model.UserEntity;
+import com.example.llm_rating.repository.UserRepository;
 import org.springframework.stereotype.Service;
-
-import cn.moonshotacademy.arena.entity.UserEntity;
-import cn.moonshotacademy.arena.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 

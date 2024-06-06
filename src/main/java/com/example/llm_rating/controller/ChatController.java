@@ -19,6 +19,11 @@ import reactor.core.publisher.Flux;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.*;
 
 @Controller
@@ -36,49 +41,100 @@ public class ChatController {
     private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
 
+
     public ChatController(ChatService chatService, ConversationService conversationService, ObjectMapper objectMapper) {
         this.chatService = chatService;
         this.conversationService = conversationService;
         this.objectMapper = objectMapper;
     }
+//    @GetMapping(value = "/conversations")
+//    public ResponseEntity<List>
+
+    @PostMapping("/conversation/b")
+    public String stopedRequest(){
+        System.out.println(73841732);
+        chatService.stopped();
+        System.out.println(273647362);
+        return "ok";
+    }
+
+    @PostMapping(value = "/conversations", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Map<String, Object>>> getConversationsByUserId(@RequestBody Map<String, String> requestBody) {
+        String userId = requestBody.get("userId");
+        if (userId == null || userId.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<Conversation> conversations = conversationService.getConversationsByUserId(userId);
+
+        List<Map<String, Object>> response = conversations.stream()
+                .map(conversation -> {
+                    Map<String, Object> map = new HashMap<>();
+                    Conversation.Message lastMessage = conversation.getMessages().stream()
+                            .max((m1, m2) -> m1.getLastMessageTime().compareTo(m2.getLastMessageTime()))
+                            .orElse(null);
+                    if (lastMessage != null) {
+                        map.put("conversation_id", conversation.getConversationId());
+                        map.put("title", lastMessage.getTitle());
+                        map.put("last_message_time", lastMessage.getLastMessageTime());
+                        map.put("bot_name", lastMessage.getModelId().equals("model1") ? "gpt-3.5" : "gpt-4");
+                    }
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
 
 
     @GetMapping(value = "/conversation/get_message_list", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<MessageResponse>> getMessageList(@RequestBody Map<String, String> requestBody) {
+    public ResponseEntity<Map<String, Object>> getMessageList(@RequestBody Map<String, String> requestBody) {
 
-        String conversationId = requestBody.get("conversationId");
-        System.out.println(conversationId);
+        String str1 = requestBody.get("pageNum");
+        String str2 = requestBody.get("pageSize");
+        int pageNum = Integer.parseInt(str1);
+        int pageSize = Integer.parseInt(str2);
+        String conversationId = requestBody.get("conversation_id");
+
         if (conversationId == null || conversationId.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
         List<MessageResponse> allMessageResponses = conversationService.buildMessageResponses(conversationId);
 
-        if (allMessageResponses == null) {
-            return ResponseEntity.notFound().build();
+        int totalItems = allMessageResponses.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+        int fromIndex = pageNum * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+
+        if (fromIndex >= totalItems) {
+            return ResponseEntity.ok(Collections.emptyMap());
         }
 
-        return ResponseEntity.ok(allMessageResponses);
+        List<MessageResponse> pagedMessageResponses = allMessageResponses.subList(fromIndex, toIndex);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", pagedMessageResponses);
+        response.put("total", totalItems);
+        response.put("pageSize", pageSize);
+        response.put("currentPage", pageNum);
+        response.put("totalPages", totalPages);
+
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping(value = "/test")
-    public ResponseEntity<HttpStatus> createConversation1() {
-        Optional<Conversation> c = conversationService.getConversation();
-        System.out.println(c.get().getMessages().get(0).getIndex());
+    public ResponseEntity<HttpStatus> createConversation1() {;
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @GetMapping(value = "/conversation/break_message")
-    public ResponseEntity<HttpStatus>breakMessage() {
-        Optional<Conversation> c = conversationService.getConversation();
-        System.out.println(c.get().getMessages().get(0).getIndex());
-        return new ResponseEntity(HttpStatus.OK);
-    }
 
     @PostMapping (value = "/conversation/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String>newchat(@RequestBody Map<String, String> requestBody) {
         String contentType = requestBody.get("content_type");
-        String conversationId = requestBody.get("convsersationId");
+        String conversationId = requestBody.get("convsersation_id");
 //        Map<String, Object> extra = request.getExtra();
          String query = requestBody.get("query");
 

@@ -5,6 +5,9 @@ import com.example.llm_rating.repository.ConversationRepository;
 import com.example.llm_rating.repository.MessageDetailRepository;
 import com.example.llm_rating.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.example.llm_rating.model.Conversation.Message;
 
@@ -43,7 +46,6 @@ public class ConversationService {
 //        return ResponseEntity.ok().body(messageResponses);
 //    }
 
-
     public List<MessageResponse> buildMessageResponses(String conversationId) {
         List<MessageResponse> messageResponses = new ArrayList<>();
         List<MessageDetail> messageDetails = getMessageDetailsByConversationId(conversationId);
@@ -59,9 +61,27 @@ public class ConversationService {
         return messageResponses;
     }
 
+
+
+    @Autowired
+    public ConversationService(ConversationRepository conversationRepository) {
+        this.conversationRepository = conversationRepository;
+    }
+
+    public List<Conversation> getConversationsByUserId(String userId) {
+        return conversationRepository.findByMessagesUserId(userId);
+    }
+
+
+
+
     // 根据消息对象的索引值从数据库中查询对应的消息详情
+
+
+
     public List<MessageDetail> getMessageDetailsByConversationId(String conversationId) {
         Optional<Conversation> conversation = conversationRepository.findByConversationId(conversationId);
+
         if (conversation != null) {
             List<Message> messages = conversation.get().getMessages();
             List<MessageDetail> messageDetails = new ArrayList<>();

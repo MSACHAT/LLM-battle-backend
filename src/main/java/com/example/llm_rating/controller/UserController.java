@@ -1,10 +1,10 @@
-package cn.moonshotacademy.arena.controllers;
+package com.example.llm_rating.controller;
 
+import com.example.llm_rating.model.UserEntity;
+import com.example.llm_rating.service.UserService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import cn.moonshotacademy.arena.entity.UserEntity;
-import cn.moonshotacademy.arena.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 

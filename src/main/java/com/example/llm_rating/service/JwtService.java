@@ -1,10 +1,10 @@
-package cn.moonshotacademy.arena.service;
+package com.example.llm_rating.service;
 
 import javax.crypto.SecretKey;
 
+import com.example.llm_rating.model.UserEntity;
 import org.springframework.stereotype.Service;
 
-import cn.moonshotacademy.arena.entity.UserEntity;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
