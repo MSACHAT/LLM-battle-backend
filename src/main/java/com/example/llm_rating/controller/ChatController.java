@@ -135,7 +135,6 @@ public class ChatController {
 
 
 
-
     @GetMapping(value = "/conversation/{conversation_id}/get_message_list", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> getMessageList(@PathVariable("conversation_id") String conversationId,
                                                               @RequestParam("pageSize") int pageSize,
@@ -145,13 +144,14 @@ public class ChatController {
         String userId = auth != null ? auth.getName() : null;
         // 使用 conversationId, pageSize 和 pageNum 进行相应的处理
 
-
-
         if (conversationId == null || conversationId.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
         List<MessageResponse> allMessageResponses = conversationService.buildMessageResponses(conversationId);
+
+        // 反转列表以使最新的消息在前
+        Collections.reverse(allMessageResponses);
 
         int totalItems = allMessageResponses.size();
         int totalPages = (int) Math.ceil((double) totalItems / pageSize);
@@ -174,6 +174,7 @@ public class ChatController {
 
         return ResponseEntity.ok(response);
     }
+
 
     @PatchMapping(PATH)
     public ResponseEntity<?> updateConversationTitle(@RequestBody Map<String, String> request) {
