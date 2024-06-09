@@ -4,8 +4,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.sql.Timestamp;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,18 +18,31 @@ public class Conversation {
     @Field("conversation_id")
     private String conversationId;
     private String modelId;
+    @Field("model_name")
+    private String modelName;
+
+    @Field("last_message_time")
+    private Date lastMessageTime;
+    @Field("user_id")
+    private String userId;
+    private String title;
     private List<Message> messages = new ArrayList<>();
 
+
     public void setModelId(String modelId) {
+        this.modelId = modelId;
     }
+
+    public void setModelName(String modelName) {
+        this.modelName = modelName;
+    }
+
 
     public static class Message {
         private int index;
         private String message_id;
-        private String title;
-        private Timestamp lastMessageTime;
-        private String modelId;
-        private String userId;
+
+
 
         // Getters and setters
 
@@ -48,37 +62,6 @@ public class Conversation {
             this.message_id = messageId;
         }
 
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public Timestamp getLastMessageTime() {
-            return lastMessageTime;
-        }
-
-        public void setLastMessageTime(Timestamp lastMessageTime) {
-            this.lastMessageTime = lastMessageTime;
-        }
-
-        public String getModelId() {
-            return modelId;
-        }
-
-        public void setModelId(String modelId) {
-            this.modelId = modelId;
-        }
-
-        public String getUserId() {
-            return userId;
-        }
-
-        public void setUserId(String userId) {
-            this.userId = userId;
-        }
 
 
     }
@@ -88,12 +71,31 @@ public class Conversation {
         this.id = UUID.randomUUID().toString(); // Generate a unique id
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public Conversation(String conversationId) {
          // Generate a unique id
         this.conversationId = conversationId;
     }
+
     public String getId() {
         return id;
+    }
+    public String getModelName(){
+        return modelName;
     }
 
     public String getModelId() {
@@ -114,6 +116,14 @@ public class Conversation {
 
     public List<Message> getMessages() {
         return messages;
+    }
+
+    public Date getLastMessageTime() {
+        return lastMessageTime;
+    }
+
+    public void setLastMessageTime(Date lastMessageTime) {
+        this.lastMessageTime = lastMessageTime;
     }
 
     public void setMessages(List<Message> messages) {

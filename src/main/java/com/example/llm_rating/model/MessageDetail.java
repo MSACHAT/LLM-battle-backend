@@ -14,7 +14,7 @@ public class MessageDetail {
 
     @Field("content_type")
     private String contentType;
-    private int index; // 添加索引字段
+
     private Media media ;
     private String role;
     private BsonTimestamp time;
@@ -54,13 +54,6 @@ public class MessageDetail {
         return id;
     }
 
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
     public void setId(String id) {
         this.id = id;
     }

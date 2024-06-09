@@ -2,14 +2,11 @@ package com.example.llm_rating.controller;
 
 import com.example.llm_rating.model.UserEntity;
 import com.example.llm_rating.service.UserService;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
@@ -27,5 +24,10 @@ public class UserController {
     @PostMapping("/register")
     public void register(@RequestBody UserEntity user) {
         userService.register(user);
+    }
+
+    @GetMapping("/test")
+    public String test(Authentication auth){
+        return auth != null ? auth.getName(): null;
     }
 }

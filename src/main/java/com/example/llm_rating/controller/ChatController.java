@@ -1,20 +1,19 @@
 package com.example.llm_rating.controller;
 
-import com.example.llm_rating.model.Conversation;
-import com.example.llm_rating.model.MessageResponse;
-import com.example.llm_rating.model.StreamData;
+import com.example.llm_rating.model.*;
 import com.example.llm_rating.service.ChatService;
 import com.example.llm_rating.service.ConversationService;
+import org.springframework.security.core.Authentication;
+import com.example.llm_rating.service.ModelService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.testng.annotations.IFactoryAnnotation;
 import reactor.core.publisher.Flux;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +29,8 @@ import java.util.*;
 @RequestMapping("/api")
 public class ChatController {
 
+
+    public static final String PATH = "/conversation/title";
     @Value("${target.api.url}")
     private String targetUrl;
 
@@ -38,46 +39,92 @@ public class ChatController {
 
     private final ChatService chatService;
     private final ConversationService conversationService;
+    private final ModelService modelService;
     private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
 
 
-    public ChatController(ChatService chatService, ConversationService conversationService, ObjectMapper objectMapper) {
+    public ChatController(ChatService chatService, ConversationService conversationService, ModelService modelService, ObjectMapper objectMapper) {
         this.chatService = chatService;
         this.conversationService = conversationService;
+        this.modelService = modelService;
         this.objectMapper = objectMapper;
     }
 //    @GetMapping(value = "/conversations")
 //    public ResponseEntity<List>
 
-    @PostMapping("/conversation/b")
-    public String stopedRequest(){
-        System.out.println(73841732);
+    @PostMapping("/conversation/break_message")
+    public ResponseEntity stopedRequest(){
+        System.out.println("正在运行/conversation/break_message");
+
         chatService.stopped();
-        System.out.println(273647362);
-        return "ok";
+
+
+        return ResponseEntity.ok("已停止");
     }
 
-    @PostMapping(value = "/conversations", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Map<String, Object>>> getConversationsByUserId(@RequestBody Map<String, String> requestBody) {
-        String userId = requestBody.get("userId");
-        if (userId == null || userId.isEmpty()) {
+    @GetMapping(value = "/models", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ModelResponse>> getAllModels() {
+        System.out.println("正在运行/models");
+        List<Model> models = modelService.getAllModels();
+        List<ModelResponse> simpleModels = models.stream()
+                .map(model -> new ModelResponse(model.getId(), model.getModelName()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(simpleModels);
+    }
+    @GetMapping("/model/{id}")
+    public ResponseEntity<ModelResponse> getModelById(@PathVariable String id) {
+        System.out.println("正在运行/model/{id}");
+        Model model = modelService.getModelById(id);
+        if (model != null) {
+            ModelResponse resmodel = new ModelResponse(model.getId(), model.getModelName());
+                    return ResponseEntity.ok(resmodel);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    @GetMapping(value = "/conversations")
+    public ResponseEntity<List<Map<String, Object>>> ConversationsByUserId(Authentication auth) {
+        System.out.println("正在运行/conversations");
+        String userId = auth != null ? auth.getName() : null;
+
+        if (userId == null) {
             return ResponseEntity.badRequest().build();
         }
 
         List<Conversation> conversations = conversationService.getConversationsByUserId(userId);
+        System.out.println(111);
+        System.out.println(conversations);
+        ObjectMapper objectMapper = new ObjectMapper();
+//        try {
+//            String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(conversations);
+//            System.out.println(json);
+//
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
+
+        if (conversations.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
 
         List<Map<String, Object>> response = conversations.stream()
                 .map(conversation -> {
                     Map<String, Object> map = new HashMap<>();
-                    Conversation.Message lastMessage = conversation.getMessages().stream()
-                            .max((m1, m2) -> m1.getLastMessageTime().compareTo(m2.getLastMessageTime()))
-                            .orElse(null);
-                    if (lastMessage != null) {
+
+                    if (conversation.getLastMessageTime() == null) {
                         map.put("conversation_id", conversation.getConversationId());
-                        map.put("title", lastMessage.getTitle());
-                        map.put("last_message_time", lastMessage.getLastMessageTime());
-                        map.put("bot_name", lastMessage.getModelId().equals("model1") ? "gpt-3.5" : "gpt-4");
+                        map.put("title", conversation.getTitle());
+                        map.put("last_message_time",null);
+                        map.put("bot_name",conversation.getModelName());
+                    } else {
+                        // 处理没有有效消息时间的情况
+                        map.put("conversation_id", conversation.getConversationId());
+                        map.put("title", conversation.getTitle());
+                        map.put("last_message_time",conversation.getLastMessageTime());
+                        map.put("bot_name",conversation.getModelName());
                     }
                     return map;
                 })
@@ -87,14 +134,18 @@ public class ChatController {
     }
 
 
-    @GetMapping(value = "/conversation/get_message_list", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> getMessageList(@RequestBody Map<String, String> requestBody) {
 
-        String str1 = requestBody.get("pageNum");
-        String str2 = requestBody.get("pageSize");
-        int pageNum = Integer.parseInt(str1);
-        int pageSize = Integer.parseInt(str2);
-        String conversationId = requestBody.get("conversation_id");
+
+    @GetMapping(value = "/conversation/{conversation_id}/get_message_list", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> getMessageList(@PathVariable("conversation_id") String conversationId,
+                                                              @RequestParam("pageSize") int pageSize,
+                                                              @RequestParam("pageNum") int pageNum,
+                                                              Authentication auth) {
+        System.out.println("正在运行/conversation/{conversation_id}/get_message_list");
+        String userId = auth != null ? auth.getName() : null;
+        // 使用 conversationId, pageSize 和 pageNum 进行相应的处理
+
+
 
         if (conversationId == null || conversationId.isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -124,26 +175,64 @@ public class ChatController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping(PATH)
+    public ResponseEntity<?> updateConversationTitle(@RequestBody Map<String, String> request) {
+
+            String conversationId = request.get("conversation_id");
+            String title = request.get("title");
+
+
+            Conversation updatedConversation = conversationService.updateConversationTitle(conversationId,title);
+            if (updatedConversation == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(updatedConversation);
+
+    }
+
+
 
     @GetMapping(value = "/test")
     public ResponseEntity<HttpStatus> createConversation1() {;
+        System.out.println("正在运行/test");
         return new ResponseEntity(HttpStatus.OK);
     }
 
 
+
+    @DeleteMapping("/conversation/{conversationId}")
+    public ResponseEntity deleteConversation(@PathVariable String conversationId ) {
+        try {
+            System.out.println("正在运行Delate conversation");
+            conversationService.deleteConversationWithMessages(conversationId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+
+                return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+
+
+
     @PostMapping (value = "/conversation/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String>newchat(@RequestBody Map<String, String> requestBody) {
+        System.out.println("正在运行/conversation/chat");
         String contentType = requestBody.get("content_type");
-        String conversationId = requestBody.get("convsersation_id");
+        String conversationId = requestBody.get("conversation_id");
 //        Map<String, Object> extra = request.getExtra();
          String query = requestBody.get("query");
 
         if (conversationId == null || conversationId.isEmpty()) {
             System.out.println("conversationId要后端新建吗");
         }
+        System.out.println(1111);
 
         List<MessageResponse> history = conversationService.buildMessageResponses(conversationId);
 
+        System.out.println(222);
+        if (history.isEmpty()){
+            conversationService.updateConversationTitle(conversationId,query);
+        }
 
         System.out.println(history);
 
@@ -151,14 +240,21 @@ public class ChatController {
         if (history == null) {
             return Flux.empty();
         }
-        return chatService.getStreamAnswer1(contentType, query, history);
+        System.out.println(333);
+        return chatService.getStreamAnswer1(contentType, query, history,conversationId);
 
     }
 
     @PostMapping(value = "/conversation/create_conversation", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, String>> createConversation(@RequestBody Map<String, String> requestBody) {
-        String modelId = requestBody.get("model_id");
-        if (modelId == null || modelId.isEmpty()) {
+    public ResponseEntity<Map<String, String>> createConversation(@RequestBody Map<String, String> requestBody,Authentication auth) {
+        System.out.println("正在运行/conversation/create_conversation");
+
+        String userId = auth != null ? auth.getName() : null;
+
+
+
+        String modelName = requestBody.get("model_name");
+        if (modelName == null || modelName.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -168,24 +264,30 @@ public class ChatController {
         String msToken = UUID.randomUUID().toString();
 
         // Create a new conversation and save it to the database
-        Conversation newConversation = new Conversation();
-        newConversation.setModelId(modelId);
+        Conversation newConversation = new Conversation(conversationId);
+        newConversation.setModelId(modelName);
         conversationService.saveConversation(newConversation);
+        String newId  = conversationService.ConversationIdGetIdService(conversationId);
 
         // Prepare response headers and body
         Map<String, String> responseBody = new HashMap<>();
-        responseBody.put("conversation_id", conversationId);
+        responseBody.put("conversation_id",newId);
+
+        conversationService.changeConversationId(newId,modelName,userId);
+
+        System.out.println(responseBody.toString());
+
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header("msToken", msToken)
                 .body(responseBody);
     }
 
-    @PostMapping(value = "/save_message", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> forwardRequest() {
+//    @PostMapping(value = "/save_message", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+//    public Flux<String> forwardRequest() {
+//
+//        return chatService.getStreamAnswer();
+//    }
 
-        return chatService.getStreamAnswer();
-    }
     //        System.out.println(targetUrl);
 //        System.out.println(1111);
 
