@@ -4,6 +4,8 @@ import com.example.llm_rating.model.*;
 import com.example.llm_rating.model.DTO.BattleMessageResponse;
 import com.example.llm_rating.service.ChatService;
 import com.example.llm_rating.service.ConversationService;
+import com.example.llm_rating.service.VoteService;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import com.example.llm_rating.service.ModelService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +21,8 @@ import reactor.core.publisher.Flux;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,13 +46,14 @@ public class BattleController {
     private final ModelService modelService;
     private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
+    private final VoteService voteService;
 
-
-    public BattleController(ChatService chatService, ConversationService conversationService, ModelService modelService, ObjectMapper objectMapper) {
+    public BattleController(ChatService chatService, ConversationService conversationService, ModelService modelService, ObjectMapper objectMapper,VoteService voteService) {
         this.chatService = chatService;
         this.conversationService = conversationService;
         this.modelService = modelService;
         this.objectMapper = objectMapper;
+        this.voteService = voteService;
     }
 //    @GetMapping(value = "/conversations")
 //    public ResponseEntity<List>
@@ -174,7 +178,11 @@ public class BattleController {
         response.put("states", states);
         response.put("uid", userId);
         response.put("tstamp", new Date());
-
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String formattedDateTime = now.format(formatter);
+        String fileName = formattedDateTime+"-conv.json";
+        voteService.appendToJsonFile(fileName, response);
         System.out.println(response);
 
         return ResponseEntity.ok().body(response);
