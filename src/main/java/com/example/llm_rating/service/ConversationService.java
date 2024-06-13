@@ -1,22 +1,14 @@
 package com.example.llm_rating.service;
 
 import com.example.llm_rating.model.*;
-import com.example.llm_rating.repository.ConversationRepository;
-import com.example.llm_rating.repository.MessageDetailRepository;
-import com.example.llm_rating.repository.MessageRepository;
-import com.example.llm_rating.repository.ModelRepository;
+import com.example.llm_rating.repository.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.example.llm_rating.model.Conversation.Message;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +16,9 @@ public class ConversationService {
 
     @Autowired
     private ConversationRepository conversationRepository;
+
+    @Autowired
+    private BattleConversationRepository battleConversationRepository;
 
     @Autowired
     private MessageDetailRepository messageDetailRepository;
@@ -52,10 +47,80 @@ public class ConversationService {
 //        return ResponseEntity.ok().body(messageResponses);
 //    }
 
+    public Map<String, String> createConversation(String modelName,String userId){
+
+        if (modelName == null || modelName.isEmpty()) {
+            System.out.println("查询不到model");
+            return null;
+        }
+
+        // Generate a unique conversation ID
+        String conversationId = UUID.randomUUID().toString();
+        // Generate a unique msToken
+        String msToken = UUID.randomUUID().toString();
+
+        // Create a new conversation and save it to the database
+        Conversation newConversation = new Conversation(conversationId);
+        newConversation.setModelId(modelName);
+        saveConversation(newConversation);
+        String newId  = ConversationIdGetIdService(conversationId);
+
+        // Prepare response headers and body
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("conversation_id",newId);
+
+        changeConversationId(newId,modelName,userId);
+
+        System.out.println(responseBody.toString());
+
+
+        return responseBody;
+    }
+    public Map<String, String> createBattleConversation(String modelName, String userId ,String battleId) {
+        if (modelName == null || modelName.isEmpty()) {
+            System.out.println("查询不到model");
+            return null;
+        }
+
+        // Create a new BattleConversation and save it to the database
+        BattleConversation newConversation = new BattleConversation();// Assuming you want to set the ID manually
+
+        newConversation.setModelName(modelName); // Assuming modelName is also the model name
+        newConversation.setUserId(userId);
+        ModelService modelService = new ModelService(modelRepository);
+        System.out.println(modelName);
+        System.out.println("!!!!!!!!!!!!!!!");
+        Model model = modelService.getModelByModelName(modelName);
+        newConversation.setModelId(model.getId());
+        newConversation.setBattleId(battleId);
+
+        // Save the new conversation to the databas
+        battleConversationRepository.save(newConversation);
+
+        // Prepare response headers and body
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("conversation_id", newConversation.getId());
+
+        System.out.println(responseBody.toString());
+
+        return responseBody;
+    }
+
+
 
     public List<MessageResponse> buildMessageResponses(String conversationId) {
         List<MessageResponse> messageResponses = new ArrayList<>();
         List<MessageDetail> messageDetails = getMessageDetailsByConversationId(conversationId);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+
+        JsonNode allMessageResponsesJsonNode = null;
+
+        allMessageResponsesJsonNode = objectMapper.valueToTree(messageDetails);
+        System.out.println(allMessageResponsesJsonNode);
+
+        System.out.println("allMessageResponsesJsonNode");
+        System.out.println(messageDetails);
         for (MessageDetail messageDetail : messageDetails) {
             MessageResponse responseDetail = new MessageResponse();
             responseDetail.setRole(messageDetail.getRole());
@@ -64,6 +129,19 @@ public class ConversationService {
             responseDetail.setMessageId(messageDetail.getId());
 
             messageResponses.add(responseDetail);
+        }
+        return messageResponses;
+    }
+
+
+    public List<List> battleMessageResponses(String conversationId) {
+        List<List> messageResponses = new ArrayList<>();
+        List<MessageDetail> messageDetails = getMessageDetailsByBattleConversationId(conversationId);
+        for (MessageDetail messageDetail : messageDetails) {
+            List newarry = new ArrayList();
+            newarry.add(messageDetail.getRole());
+            newarry.add(messageDetail.getContent());
+            messageResponses.add(newarry);
         }
         return messageResponses;
     }
@@ -110,7 +188,7 @@ public class ConversationService {
 
 
     @Autowired
-    public ConversationService(ConversationRepository conversationRepository) {
+    public ConversationService() {
         this.conversationRepository = conversationRepository;
     }
 
@@ -130,15 +208,14 @@ public class ConversationService {
     // 根据消息对象的索引值从数据库中查询对应的消息详情
 
 
-
     public List<MessageDetail> getMessageDetailsByConversationId(String conversationId) {
-        Optional<Conversation> conversation = conversationRepository.findByConversationId(conversationId);
+        Optional<Conversation> conversation = conversationRepository.findById(conversationId);
 
         if (conversation.isPresent()) {
-            List<Message> messages = conversation.get().getMessages();
+            List<Conversation.Message> messages = conversation.get().getMessages();
             List<MessageDetail> messageDetails = new ArrayList<>();
 
-            for (Message message : messages) {
+            for (Conversation.Message message : messages) {
                 System.out.println(message.getMessageId());
                 Optional<MessageDetail> messageDetailOptional = messageDetailRepository.findById(message.getMessageId());
 
@@ -150,6 +227,29 @@ public class ConversationService {
 
         return new ArrayList<>();
     }
+
+
+    public List<MessageDetail> getMessageDetailsByBattleConversationId(String conversationId) {
+        Optional<BattleConversation> conversation = battleConversationRepository.findById(conversationId);
+
+        if (conversation.isPresent()) {
+            List<BattleConversation.Message> messages = conversation.get().getMessages();
+            List<MessageDetail> messageDetails = new ArrayList<>();
+
+            for (BattleConversation.Message message : messages) {
+                System.out.println(message.getMessageId());
+                Optional<MessageDetail> messageDetailOptional = messageDetailRepository.findById(message.getMessageId());
+
+                messageDetailOptional.ifPresent(messageDetails::add);
+            }
+
+            return messageDetails;
+        }
+
+        return new ArrayList<>();
+    }
+
+
 
 
     public void handleIncomingData(StreamData data) {

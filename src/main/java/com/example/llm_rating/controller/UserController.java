@@ -2,11 +2,18 @@ package com.example.llm_rating.controller;
 
 import com.example.llm_rating.model.UserEntity;
 import com.example.llm_rating.service.UserService;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.HashMap;
 
 
 @RestController
@@ -22,10 +29,18 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public void register(@RequestBody UserEntity user) {
+    public ResponseEntity<HashMap<String, Object>> register(@RequestBody UserEntity user) {
         userService.register(user);
-    }
 
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "请求成功");
+
+        // 如果您有额外的数据要添加到响应体，可以直接添加到 HashMap 中
+        // response.put("data", yourDataObject);
+
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/test")
     public String test(Authentication auth){
         return auth != null ? auth.getName(): null;

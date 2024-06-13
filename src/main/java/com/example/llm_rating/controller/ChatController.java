@@ -3,6 +3,7 @@ package com.example.llm_rating.controller;
 import com.example.llm_rating.model.*;
 import com.example.llm_rating.service.ChatService;
 import com.example.llm_rating.service.ConversationService;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.security.core.Authentication;
 import com.example.llm_rating.service.ModelService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,10 +55,36 @@ public class ChatController {
 //    public ResponseEntity<List>
 
     @PostMapping("/conversation/break_message")
-    public ResponseEntity stopedRequest(){
+    public ResponseEntity stopedRequest(@RequestBody Map<String, String> requestBody){
         System.out.println("正在运行/conversation/break_message");
 
-        chatService.stopped();
+
+        String battleId =requestBody.get("battle_id");
+        List<String>conversationList = chatService.getIdFromBattleId(battleId);
+        System.out.println(conversationList);
+
+        String conversationId1 = conversationList.get(0);
+        String conversationId2 = conversationList.get(1);
+        chatService.stopped(conversationId1);
+        chatService.stopped(conversationId2);
+
+
+        return ResponseEntity.ok("已停止");
+    }
+    @PostMapping("/battle/break_message")
+    public ResponseEntity battlestopedRequest(@RequestBody Map<String, String> requestBody){
+        System.out.println("正在运行/conversation/break_message");
+
+
+        String battleId =requestBody.get("battle_id");
+        List<String>conversationList = chatService.getIdFromBattleId(battleId);
+        System.out.println(conversationList);
+
+        String conversationId1 = conversationList.get(0);
+        String conversationId2 = conversationList.get(1);
+        System.out.println(999999);
+        chatService.stopped(conversationId1);
+        chatService.stopped(conversationId2);
 
 
         return ResponseEntity.ok("已停止");
@@ -149,6 +176,9 @@ public class ChatController {
         }
 
         List<MessageResponse> allMessageResponses = conversationService.buildMessageResponses(conversationId);
+
+
+
 
         // 反转列表以使最新的消息在前
         Collections.reverse(allMessageResponses);
@@ -242,7 +272,7 @@ public class ChatController {
             return Flux.empty();
         }
         System.out.println(333);
-        return chatService.getStreamAnswer1(contentType, query, history,conversationId);
+        return chatService.getStreamAnswer(contentType, query, history,conversationId);
 
     }
 
@@ -250,37 +280,14 @@ public class ChatController {
     public ResponseEntity<Map<String, String>> createConversation(@RequestBody Map<String, String> requestBody,Authentication auth) {
         System.out.println("正在运行/conversation/create_conversation");
 
+
         String userId = auth != null ? auth.getName() : null;
 
 
-
         String modelName = requestBody.get("model_name");
-        if (modelName == null || modelName.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        // Generate a unique conversation ID
-        String conversationId = UUID.randomUUID().toString();
-        // Generate a unique msToken
-        String msToken = UUID.randomUUID().toString();
-
-        // Create a new conversation and save it to the database
-        Conversation newConversation = new Conversation(conversationId);
-        newConversation.setModelId(modelName);
-        conversationService.saveConversation(newConversation);
-        String newId  = conversationService.ConversationIdGetIdService(conversationId);
-
-        // Prepare response headers and body
-        Map<String, String> responseBody = new HashMap<>();
-        responseBody.put("conversation_id",newId);
-
-        conversationService.changeConversationId(newId,modelName,userId);
-
-        System.out.println(responseBody.toString());
-
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(responseBody);
+                .body(conversationService.createConversation(modelName,userId));
     }
 
 //    @PostMapping(value = "/save_message", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

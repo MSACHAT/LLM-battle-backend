@@ -6,8 +6,6 @@ public class MessageResponse {
     private String contentType;
 
     private String messageId;
-    private int messageIndex;
-
 
 
     public String getRole() {
@@ -42,11 +40,4 @@ public class MessageResponse {
         this.messageId = messageId;
     }
 
-    public int getMessageIndex() {
-        return messageIndex;
-    }
-
-    public void setMessageIndex(int messageIndex) {
-        this.messageIndex = messageIndex;
-    }
 }

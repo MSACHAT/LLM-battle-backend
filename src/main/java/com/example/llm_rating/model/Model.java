@@ -12,6 +12,16 @@ import org.springframework.data.mongodb.core.mapping.Field;
 public class Model {
     @Id
     private String id;
+    @Field("bot_id")
+    private String botId;
+
+    public String getBotId() {
+        return botId;
+    }
+
+    public void setBotId(String botId) {
+        this.botId = botId;
+    }
 
     @Field("model_name")
     private String modelName;
