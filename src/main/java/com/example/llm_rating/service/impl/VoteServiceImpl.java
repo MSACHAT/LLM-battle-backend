@@ -54,49 +54,46 @@ public class VoteServiceImpl {
         }
     }
 
-//    public void addVoteDataTo(VoteDto voteDto) {
-//        try {
-//            return null;
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-public void appendToJsonFile(String filePath, Object newContentJson) {
-    try {
+    // public void addVoteDataTo(VoteDto voteDto) {
+    // try {
+    // return null;
+    // } catch (JsonProcessingException e) {
+    // throw new RuntimeException(e);
+    // }
+    // }
+    public void appendToJsonFile(String filePath, Object newContentJson) {
+        try {
 
-        File file = new File(filePath);
+            File file = new File(filePath);
 
-        String newContentJsonString = objectMapper.writeValueAsString(newContentJson);
+            String newContentJsonString = objectMapper.writeValueAsString(newContentJson);
 
-        ArrayNode jsonArray;
+            ArrayNode jsonArray;
 
-        if (file.exists()) {
-            // Read existing JSON content
-            JsonNode existingJson = objectMapper.readTree(file);
+            if (file.exists()) {
 
-            if (existingJson.isArray()) {
-                jsonArray = (ArrayNode) existingJson;
+                JsonNode existingJson = objectMapper.readTree(file);
+
+                if (existingJson.isArray()) {
+                    jsonArray = (ArrayNode) existingJson;
+                } else {
+                    jsonArray = objectMapper.createArrayNode();
+                    jsonArray.add(existingJson);
+                }
             } else {
+
+                file.createNewFile();
                 jsonArray = objectMapper.createArrayNode();
-                jsonArray.add(existingJson);
             }
-        } else {
-            // Create new JSON array if file doesn't exist
-            file.createNewFile();
-            jsonArray = objectMapper.createArrayNode();
+
+            JsonNode newContentNode = objectMapper.readTree(newContentJsonString);
+            jsonArray.add(newContentNode);
+
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, jsonArray);
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        // Parse new content and add to JSON array
-        JsonNode newContentNode = objectMapper.readTree(newContentJsonString);
-        jsonArray.add(newContentNode);
-
-        // Write updated JSON array back to the file
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, jsonArray);
-
-        System.out.println("Successfully appended to the JSON file.");
-    } catch (IOException e) {
-        e.printStackTrace();
     }
-}
 
 }
