@@ -59,14 +59,10 @@ public class ChatController {
         System.out.println("正在运行/conversation/break_message");
 
 
-        String battleId =requestBody.get("battle_id");
-        List<String>conversationList = chatService.getIdFromBattleId(battleId);
-        System.out.println(conversationList);
+        String conversationId =requestBody.get("conversation_id");
 
-        String conversationId1 = conversationList.get(0);
-        String conversationId2 = conversationList.get(1);
-        chatService.stopped(conversationId1);
-        chatService.stopped(conversationId2);
+        chatService.stopped(conversationId);
+
 
 
         return ResponseEntity.ok("已停止");

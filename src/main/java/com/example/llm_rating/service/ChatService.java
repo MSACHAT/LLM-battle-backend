@@ -42,6 +42,9 @@ public class ChatService {
     private ConversationRepository conversationRepository;
 
     @Autowired
+    private ConversationService conversationService;
+
+    @Autowired
     private ModelRepository modelRepository;
 
     @Autowired
@@ -51,10 +54,8 @@ public class ChatService {
     long transmissionInterval = 1000;
 
     public void stopped(String conversationId) {
-        ConversationService conversationService = new ConversationService();
         String index =String.valueOf(conversationService.battleMessageResponses(conversationId).size());
         alive.replace(conversationId+index,false);
-
     }
 
     public void saveMessageInBattleConversation(String conversationId, MessageDetail userchat) {

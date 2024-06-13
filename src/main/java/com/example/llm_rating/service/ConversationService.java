@@ -4,6 +4,7 @@ import com.example.llm_rating.model.*;
 import com.example.llm_rating.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.llm_rating.model.Conversation.Message;
@@ -12,22 +13,19 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ConversationService {
 
-    @Autowired
-    private ConversationRepository conversationRepository;
+    private final ConversationRepository conversationRepository;
 
-    @Autowired
-    private BattleConversationRepository battleConversationRepository;
 
-    @Autowired
-    private MessageDetailRepository messageDetailRepository;
+    private final BattleConversationRepository battleConversationRepository;
 
-    @Autowired
-    private ModelRepository modelRepository;
+    private final MessageDetailRepository messageDetailRepository;
 
-    @Autowired
-    private MessageRepository messageRepository;
+    private final ModelRepository modelRepository;
+
+    private final MessageRepository messageRepository;
 
 //    public ResponseEntity<?> getMessages(String msToken, ConversationRequest request) {
 //        // 检查 msToken 是否有效，略去
@@ -184,12 +182,6 @@ public class ConversationService {
     public String ConversationIdGetIdService(String conversationId){
         Optional<Conversation> data = conversationRepository.findByConversationId(conversationId);
         return data.get().getId();
-    }
-
-
-    @Autowired
-    public ConversationService() {
-        this.conversationRepository = conversationRepository;
     }
 
     public List<Conversation> getConversationsByUserId(String userId) {
