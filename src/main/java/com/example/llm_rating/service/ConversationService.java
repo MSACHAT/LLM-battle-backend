@@ -45,6 +45,36 @@ public class ConversationService {
 //        return ResponseEntity.ok().body(messageResponses);
 //    }
 
+//    public List<String>getTwoRandomConversationId(){
+//        List modelList = modelRepository.findAll();
+//
+//        List<String> randomElements = getNewRandomConversationId(modelList);
+//
+//        return randomElements;
+//
+//    }
+    public static List<String> getNewRandomConversationId(List<String> modelList) {
+        if (modelList.size() < 2) {
+            throw new IllegalArgumentException("List must contain at least two elements");
+        }
+
+        Random random = new Random();
+        List<String> result = new ArrayList<>();
+        int index1 = random.nextInt(modelList.size());
+        result.add(modelList.get(index1));
+
+        // 从剩下的元素中随机选择第二个元素
+        for (int i = 0; i < modelList.size(); i++) {
+            if (i != index1) {
+                int index2 = random.nextInt(modelList.size() - 1);
+                result.add(modelList.get(index2));
+                break; // 找到第二个元素后退出循环
+            }
+        }
+
+        return result;
+    }
+
     public Map<String, String> createConversation(String modelName,String userId){
 
         if (modelName == null || modelName.isEmpty()) {

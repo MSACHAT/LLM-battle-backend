@@ -63,12 +63,15 @@ public class BattleController {
     public ResponseEntity<String> createConversation(Authentication auth) {
         String userId = auth != null ? auth.getName() : null;
 
-        List<String> models = Arrays.asList("coze");
-        Random random = new Random();
-        String battleId = UUID.randomUUID().toString();
+            List<String> models = Arrays.asList("gpt4","gmini1.5 flash","Gmini 1.5 pro","gpt4o");
 
-        String selectedModel1 = models.get(random.nextInt(models.size()));
-        String selectedModel2 = models.get(random.nextInt(models.size()));
+        String battleId = UUID.randomUUID().toString();
+//        List list = conversationService.getTwoRandomConversationId();
+        List<String> id = conversationService.getNewRandomConversationId(models);
+        System.out.println(id);
+
+        String selectedModel1 = id.get(0);
+        String selectedModel2 = id.get(1);
 
         Map<String, String> res1 = conversationService.createBattleConversation(selectedModel1, userId,battleId);
         String conversationId1 = res1.get("conversation_id");
@@ -91,11 +94,13 @@ public class BattleController {
     @PostMapping (value = "/battle/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String>newchat(@RequestBody Map<String, Object> requestBody,Authentication auth) throws Exception {
         String userId = auth != null ? auth.getName() : null;
-        String modelName = "coze";
+
 
         String battleId = (String) requestBody.get("battle_id");
         List<String>conversationList = chatService.getIdFromBattleId(battleId);
         System.out.println(conversationList);
+
+
 //
         String conversationId1 = conversationList.get(0);
         String conversationId2 = conversationList.get(1);
@@ -109,15 +114,24 @@ public class BattleController {
         List<MessageResponse> history1 = conversationService.buildMessageResponses(conversationId1);
 
         List<MessageResponse> history2 = conversationService.buildMessageResponses(conversationId2);
+        String modelName1 = chatService.getModlename(conversationId1).get("modelName").toString();
+        String modelName2 = chatService.getModlename(conversationId2).get("modelName").toString();
+        System.out.println(modelName1);
+        System.out.println("modelname1111111");
+        System.out.println(modelName2);
+        System.out.println("modelname22222222222");
+
+
+
 
         System.out.println("history1");
         System.out.println(history1);
         System.out.println("history2");
         System.out.println(history2);
 
-        Flux<String> resa = chatService.getStreamAnswer2(contentType, query, history1 ,conversationId1, modelName,"model_a");
+        Flux<String> resa = chatService.getStreamAnswer2(contentType, query, history1 ,conversationId1, modelName1,"model_a");
 
-        Flux<String> resb = chatService.getStreamAnswer2(contentType, query, history2 ,conversationId2, modelName,"model_b");
+        Flux<String> resb = chatService.getStreamAnswer2(contentType, query, history2 ,conversationId2, modelName2,"model_b");
         Flux<String> res = Flux.merge(resa, resb).concatWith(Flux.just("{\"event\": \"done\"}"));
 
         return res;

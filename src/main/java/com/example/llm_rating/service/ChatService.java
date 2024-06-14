@@ -1,9 +1,6 @@
 package com.example.llm_rating.service;
 
-import com.example.llm_rating.model.BattleConversation;
-import com.example.llm_rating.model.Conversation;
-import com.example.llm_rating.model.MessageDetail;
-import com.example.llm_rating.model.MessageResponse;
+import com.example.llm_rating.model.*;
 import com.example.llm_rating.repository.BattleConversationRepository;
 import com.example.llm_rating.repository.ConversationRepository;
 import com.example.llm_rating.repository.MessageDetailRepository;
@@ -114,11 +111,14 @@ public class ChatService {
         MessageDetail userchat = messageDetailRepository.save(chat);
 
         saveMessageInConversation(conversationId,userchat);
+        Optional<Conversation> con = conversationRepository.findById(conversationId);
+        Optional<Model> data2 = modelRepository.findById(con.get().getModelId());
+        String botId = data2.get().getBotId();
 
 
         // 设置请求体
         System.out.println();
-        alive.put(conversationId+index,true);
+        alive.put(conversationId + index,true);
 
         String query = query1;
 
@@ -143,7 +143,7 @@ public class ChatService {
 
         String requestBody = "{ " +
                 "\"chat_history\": " + requestBodyBuilder.toString() + ", " +
-                "\"bot_id\": \"7372102895011463176\", " +
+                "\"bot_id\": \"" + botId + "\", " +
                 "\"user\": \"1481156807020\", " +
                 "\"query\": \"" + query + "\", " +
                 "\"stream\": true" +
@@ -203,6 +203,12 @@ public class ChatService {
                 });
         return res;
     }
+    private String getModelName(String conversationId){
+            return conversationRepository.findById(conversationId).get().getModelName();
+
+
+
+    }
 
     public List<String> getIdFromBattleId(String battleId){
         List<BattleConversation> battleList = battleConversationRepository.findByBattleId(battleId);
@@ -220,7 +226,9 @@ public class ChatService {
     public Flux<String> getStreamAnswer2(String contentType, String query1, List<MessageResponse> history1, String conversationId,String modelName,String model) throws Exception{
 
         String botId = modelRepository.findByModelName(modelName).orElseThrow().getBotId();
-        Integer index = history1.size();
+        String index = String.valueOf(history1.size());
+        System.out.println(index);
+        System.out.println("6565656565");
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + apiToken);
         headers.set("Content-Type", "application/json");
@@ -230,6 +238,7 @@ public class ChatService {
         MessageDetail userchat = messageDetailRepository.save(chat);
         saveMessageInBattleConversation(conversationId, userchat);
         System.out.println(userchat.getId());
+        alive.put(conversationId + index,true);
 
         // 设置请求体
 
@@ -265,7 +274,10 @@ public class ChatService {
                 .bodyToFlux(String.class)
                 .filter(wrapPredicate(data->streamFilter(data)))
                 .map(wrapFunction(data -> addModelName(data, model)))
-                .takeWhile(data -> alive.get(conversationId + index));
+                .takeWhile(data -> {
+                    System.out.println(conversationId + index + "xxxxxxxxxxxxxx");
+                    return alive.get(conversationId + index);
+                });
 
 
 
