@@ -15,6 +15,37 @@ public class Model {
     @Field("bot_id")
     private String botId;
 
+    @Field("knowledge_cutoff")
+    private String knowledgeCutoff;
+
+    private String lisence;
+
+    private String organization;
+
+    public String getKnowledgeCutoff() {
+        return knowledgeCutoff;
+    }
+
+    public void setKnowledgeCutoff(String knowledgeCutoff) {
+        this.knowledgeCutoff = knowledgeCutoff;
+    }
+
+    public String getLisence() {
+        return lisence;
+    }
+
+    public void setLisence(String lisence) {
+        this.lisence = lisence;
+    }
+
+    public String getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(String organization) {
+        this.organization = organization;
+    }
+
     public String getBotId() {
         return botId;
     }
