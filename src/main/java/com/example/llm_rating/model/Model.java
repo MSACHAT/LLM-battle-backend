@@ -75,6 +75,8 @@ public class Model {
     public void setModelName(String modelName) {
         this.modelName = modelName;
     }
+
+
 // Getters and Setters
     // ...
 }
