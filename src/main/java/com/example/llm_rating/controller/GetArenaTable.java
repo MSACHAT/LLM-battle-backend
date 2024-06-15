@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,14 +24,16 @@ public class GetArenaTable {
 
     private final CommunicationService communicationService;
 
-    private final ModelMapper modelMapper;
+
     private final GetTableService getTableService;
 
+    private final ObjectMapper objectMapper;
     @GetMapping("/arena_table")
+    @Cacheable("arenaTableCache")
     public List<DataSource> getArenaTable() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
+
         JsonNode eloTable= communicationService.getLeaderBoard();
-        List<DataSource> sourceList = mapper.convertValue(eloTable, new TypeReference<List<DataSource>>() {});
+        List<DataSource> sourceList = objectMapper.convertValue(eloTable, new TypeReference<List<DataSource>>() {});
 
         return sourceList.stream()
                 .map(getTableService::processData)
