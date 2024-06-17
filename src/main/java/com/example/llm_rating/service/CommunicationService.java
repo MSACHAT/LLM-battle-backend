@@ -2,13 +2,11 @@ package com.example.llm_rating.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
 import okhttp3.*;
-
-import java.io.IOException;
-
 import org.springframework.stereotype.Service;
 
-import lombok.AllArgsConstructor;
+import java.io.IOException;
 
 @Service
 @AllArgsConstructor
@@ -53,7 +51,6 @@ public class CommunicationService {
             return response.body().string();
         }
     }
-
 
 
 }

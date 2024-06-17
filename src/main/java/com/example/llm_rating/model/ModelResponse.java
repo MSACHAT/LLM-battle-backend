@@ -13,5 +13,4 @@ public class ModelResponse {
         this.id = id;
         this.modelName = modelName;
     }
-// getters and setters
 }

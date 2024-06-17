@@ -1,10 +1,9 @@
 package com.example.llm_rating.model;
 
+import org.bson.BsonTimestamp;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-
-import org.bson.BsonTimestamp;
 
 @Document(collection = "message_detail")
 public class MessageDetail {
@@ -15,28 +14,20 @@ public class MessageDetail {
     @Field("content_type")
     private String contentType;
 
-    private Media media ;
+    private Media media;
     private String role;
     private BsonTimestamp time;
 
-    private static class Media {
-        private String url;
-
-        public String getUrl() { return url; }
-        public void setUrl(String url) { this.url = url; }
-    }
-    public MessageDetail(String content,String contentType,String role) {
+    public MessageDetail(String content, String contentType, String role) {
         this.content = content;
         this.contentType = contentType;
         this.role = role;
     }
 
-
     // Getters and setters for MessageDetail fields
     public String getRole() {
         return role;
     }
-
 
     public void setRole(String role) {
         this.role = role;
@@ -46,10 +37,10 @@ public class MessageDetail {
         return time;
     }
 
-
     public void setTime(BsonTimestamp time) {
         this.time = time;
     }
+
     public String getId() {
         return id;
     }
@@ -80,5 +71,17 @@ public class MessageDetail {
 
     public void setMessage(Media media) {
         this.media = media;
+    }
+
+    private static class Media {
+        private String url;
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
     }
 }
