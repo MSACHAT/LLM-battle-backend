@@ -9,9 +9,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.support.RetryTemplate;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,6 +29,9 @@ public class GetArenaTable {
     private final GetTableService getTableService;
 
     private final ObjectMapper objectMapper;
+
+    private final RetryTemplate retryTemplate;
+
     @GetMapping("/arena_table")
     @Cacheable("arenaTableCache")
     public List<DataSource> getArenaTable() throws IOException {
@@ -39,5 +43,25 @@ public class GetArenaTable {
                 .map(getTableService::processData)
                 .toList();
 
+    }
+
+    @PostMapping("/is_success/{isSuccess}")
+    public Boolean isComputeSuccess(@PathVariable String isSuccess) throws IOException {
+        if ("false".equalsIgnoreCase(isSuccess)) {
+            retryTemplate.execute(new RetryCallback<Void, RuntimeException>() {
+                @Override
+                public Void doWithRetry(RetryContext context) {
+                    try {
+                        communicationService.computeElo();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                }
+            });
+        } else {
+            communicationService.computeElo();
+        }
+        return true;
     }
 }
