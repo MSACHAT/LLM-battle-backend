@@ -1,11 +1,34 @@
 package com.example.llm_rating.model;
 
-import java.util.List;
-
 public class StreamData {
     private String conversationId;
     private StreamMessage message;
     private StreamMessageDetail messageDetail;
+
+    // Getters and setters for StreamData fields
+    public String getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(String conversationId) {
+        this.conversationId = conversationId;
+    }
+
+    public StreamMessage getMessage() {
+        return message;
+    }
+
+    public void setMessage(StreamMessage message) {
+        this.message = message;
+    }
+
+    public StreamMessageDetail getMessageDetail() {
+        return messageDetail;
+    }
+
+    public void setMessageDetail(StreamMessageDetail messageDetail) {
+        this.messageDetail = messageDetail;
+    }
 
     public static class StreamMessage {
         private int index;
@@ -70,28 +93,6 @@ public class StreamData {
         private String contentType;
         private Message message;
 
-        public static class Message {
-            private String role;
-            private long time;
-
-            // Getters and setters
-            public String getRole() {
-                return role;
-            }
-
-            public void setRole(String role) {
-                this.role = role;
-            }
-
-            public long getTime() {
-                return time;
-            }
-
-            public void setTime(long time) {
-                this.time = time;
-            }
-        }
-
         // Getters and setters
         public String getContent() {
             return content;
@@ -116,30 +117,27 @@ public class StreamData {
         public void setMessage(Message message) {
             this.message = message;
         }
-    }
 
-    // Getters and setters for StreamData fields
-    public String getConversationId() {
-        return conversationId;
-    }
+        public static class Message {
+            private String role;
+            private long time;
 
-    public void setConversationId(String conversationId) {
-        this.conversationId = conversationId;
-    }
+            // Getters and setters
+            public String getRole() {
+                return role;
+            }
 
-    public StreamMessage getMessage() {
-        return message;
-    }
+            public void setRole(String role) {
+                this.role = role;
+            }
 
-    public void setMessage(StreamMessage message) {
-        this.message = message;
-    }
+            public long getTime() {
+                return time;
+            }
 
-    public StreamMessageDetail getMessageDetail() {
-        return messageDetail;
-    }
-
-    public void setMessageDetail(StreamMessageDetail messageDetail) {
-        this.messageDetail = messageDetail;
+            public void setTime(long time) {
+                this.time = time;
+            }
+        }
     }
 }

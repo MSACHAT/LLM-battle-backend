@@ -21,6 +21,10 @@ public class Model {
     private String lisence;
 
     private String organization;
+    @Field("model_name")
+    private String modelName;
+    private String token;
+    private String url;
 
     public String getKnowledgeCutoff() {
         return knowledgeCutoff;
@@ -54,10 +58,6 @@ public class Model {
         this.botId = botId;
     }
 
-    @Field("model_name")
-    private String modelName;
-    private String token;
-
     public String getId() {
         return id;
     }
@@ -65,8 +65,6 @@ public class Model {
     public void setId(String id) {
         this.id = id;
     }
-
-    private String url;
 
     public String getModelName() {
         return modelName;

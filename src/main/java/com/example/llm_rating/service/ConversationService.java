@@ -1,13 +1,12 @@
 package com.example.llm_rating.service;
 
 import com.example.llm_rating.model.*;
+import com.example.llm_rating.model.Conversation.Message;
 import com.example.llm_rating.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.example.llm_rating.model.Conversation.Message;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,32 +26,6 @@ public class ConversationService {
 
     private final MessageRepository messageRepository;
 
-//    public ResponseEntity<?> getMessages(String msToken, ConversationRequest request) {
-//        // 检查 msToken 是否有效，略去
-//
-//        // 根据 conversation_id 查询消息
-//        List<Message> messages = conversationRepository.findByConversationId(request.getConversationId());
-//
-//        // 如果未找到消息，返回 404 Not Found
-//        if (messages.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("未找到该会话");
-//        }
-//
-//        // 构建返回消息列表
-//        List<MessageResponse> messageResponses = buildMessageResponses(request.getConversationId());
-//
-//        // 返回消息列表
-//        return ResponseEntity.ok().body(messageResponses);
-//    }
-
-//    public List<String>getTwoRandomConversationId(){
-//        List modelList = modelRepository.findAll();
-//
-//        List<String> randomElements = getNewRandomConversationId(modelList);
-//
-//        return randomElements;
-//
-//    }
     public static List<String> getNewRandomConversationId(List<String> modelList) {
         if (modelList.size() < 2) {
             throw new IllegalArgumentException("List must contain at least two elements");
@@ -75,10 +48,9 @@ public class ConversationService {
         return result;
     }
 
-    public Map<String, String> createConversation(String modelName,String userId){
+    public Map<String, String> createConversation(String modelName, String userId) {
 
         if (modelName == null || modelName.isEmpty()) {
-            System.out.println("查询不到model");
             return null;
         }
 
@@ -91,22 +63,20 @@ public class ConversationService {
         Conversation newConversation = new Conversation(conversationId);
         newConversation.setModelId(modelName);
         saveConversation(newConversation);
-        String newId  = ConversationIdGetIdService(conversationId);
+        String newId = ConversationIdGetIdService(conversationId);
 
         // Prepare response headers and body
         Map<String, String> responseBody = new HashMap<>();
-        responseBody.put("conversation_id",newId);
+        responseBody.put("conversation_id", newId);
 
-        changeConversationId(newId,modelName,userId);
-
-        System.out.println(responseBody.toString());
+        changeConversationId(newId, modelName, userId);
 
 
         return responseBody;
     }
-    public Map<String, String> createBattleConversation(String modelName, String userId ,String battleId) {
+
+    public Map<String, String> createBattleConversation(String modelName, String userId, String battleId) {
         if (modelName == null || modelName.isEmpty()) {
-            System.out.println("查询不到model");
             return null;
         }
 
@@ -116,8 +86,6 @@ public class ConversationService {
         newConversation.setModelName(modelName); // Assuming modelName is also the model name
         newConversation.setUserId(userId);
         ModelService modelService = new ModelService(modelRepository);
-        System.out.println(modelName);
-        System.out.println("!!!!!!!!!!!!!!!");
         Model model = modelService.getModelByModelName(modelName);
         newConversation.setModelId(model.getId());
         newConversation.setBattleId(battleId);
@@ -128,12 +96,8 @@ public class ConversationService {
         // Prepare response headers and body
         Map<String, String> responseBody = new HashMap<>();
         responseBody.put("conversation_id", newConversation.getId());
-
-        System.out.println(responseBody.toString());
-
         return responseBody;
     }
-
 
 
     public List<MessageResponse> buildMessageResponses(String conversationId) {
@@ -145,10 +109,6 @@ public class ConversationService {
         JsonNode allMessageResponsesJsonNode = null;
 
         allMessageResponsesJsonNode = objectMapper.valueToTree(messageDetails);
-        System.out.println(allMessageResponsesJsonNode);
-
-        System.out.println("allMessageResponsesJsonNode");
-        System.out.println(messageDetails);
         for (MessageDetail messageDetail : messageDetails) {
             MessageResponse responseDetail = new MessageResponse();
             responseDetail.setRole(messageDetail.getRole());
@@ -188,7 +148,7 @@ public class ConversationService {
         }
     }
 
-    public void changeConversationId(String conversationId,String modelName,String userId) {
+    public void changeConversationId(String conversationId, String modelName, String userId) {
         Optional<Conversation> savedata = conversationRepository.findById(conversationId);
         if (savedata.isPresent()) {
             Conversation conversation = savedata.get();
@@ -197,8 +157,6 @@ public class ConversationService {
             conversation.setUserId(userId);
 
             ModelService modelService = new ModelService(modelRepository);
-            System.out.println(modelName);
-            System.out.println("!!!!!!!!!!!!!!!");
             Model model = modelService.getModelByModelName(modelName);
             conversation.setModelId(model.getId());
             conversationRepository.save(conversation); // Save the conversation object, not Optional
@@ -209,22 +167,15 @@ public class ConversationService {
     }
 
 
-    public String ConversationIdGetIdService(String conversationId){
+    public String ConversationIdGetIdService(String conversationId) {
         Optional<Conversation> data = conversationRepository.findByConversationId(conversationId);
         return data.get().getId();
     }
 
     public List<Conversation> getConversationsByUserId(String userId) {
-        System.out.println(userId);
-
-//        return conversationRepository.findByUserId(userId);
-    return conversationRepository.findByUserId(userId);
+        return conversationRepository.findByUserId(userId);
 
     }
-
-
-
-
 
 
     // 根据消息对象的索引值从数据库中查询对应的消息详情
@@ -238,7 +189,6 @@ public class ConversationService {
             List<MessageDetail> messageDetails = new ArrayList<>();
 
             for (Conversation.Message message : messages) {
-                System.out.println(message.getMessageId());
                 Optional<MessageDetail> messageDetailOptional = messageDetailRepository.findById(message.getMessageId());
 
                 messageDetailOptional.ifPresent(messageDetails::add);
@@ -259,7 +209,6 @@ public class ConversationService {
             List<MessageDetail> messageDetails = new ArrayList<>();
 
             for (BattleConversation.Message message : messages) {
-                System.out.println(message.getMessageId());
                 Optional<MessageDetail> messageDetailOptional = messageDetailRepository.findById(message.getMessageId());
 
                 messageDetailOptional.ifPresent(messageDetails::add);
@@ -272,8 +221,6 @@ public class ConversationService {
     }
 
 
-
-
     public void handleIncomingData(StreamData data) {
         Conversation conversation = getOrCreateConversation(data.getConversationId());
         updateConversation(conversation, data);
@@ -283,8 +230,6 @@ public class ConversationService {
     public void saveConversation(Conversation conversation) {
         conversationRepository.save(conversation);
     }
-
-
 
 
     private Conversation getOrCreateConversation(String conversationId) {
@@ -310,7 +255,7 @@ public class ConversationService {
                 .orElse(null);
 
         // 如果找到了会话，则更新其标题
-        if (conversation!= null) {
+        if (conversation != null) {
             conversation.setTitle(newTitle);
             // 将更新后的会话保存回数据库
             conversationRepository.save(conversation);
