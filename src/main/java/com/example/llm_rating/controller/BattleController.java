@@ -94,9 +94,10 @@ public class BattleController {
         String query = (String) requestBody.get("query");
 
 
-        List<MessageResponse> history1 = conversationService.buildMessageResponses(conversationId1);
-
-        List<MessageResponse> history2 = conversationService.buildMessageResponses(conversationId2);
+        List<MessageResponse> history1 = conversationService.buildBattleMessageResponses(conversationId1);
+        System.out.println(history1);
+        System.out.println("History1");
+        List<MessageResponse> history2 = conversationService.buildBattleMessageResponses(conversationId2);
         String modelName1 = chatService.getModlename(conversationId1).get("modelName").toString();
         String modelName2 = chatService.getModlename(conversationId2).get("modelName").toString();
 

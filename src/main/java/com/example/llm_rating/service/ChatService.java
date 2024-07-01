@@ -135,6 +135,8 @@ public class ChatService {
                 "}";
 
 
+        System.out.println(requestBody);
+        System.out.println(1111111);
         WebClient webClient = WebClient.create();
         // 发送 POST 请求，并返回响应的Flux
         Flux<String> res = webClient.post()
@@ -204,20 +206,25 @@ public class ChatService {
         alive.put(conversationId + index, true);
 
         // 设置请求体
-
+        List<MessageResponse> history = history1;
 
         StringBuilder requestBodyBuilder = new StringBuilder();
         requestBodyBuilder.append("[ ");
-        for (int i = 0; i < history1.size(); i++) {
-            MessageResponse message = history1.get(i);
+
+        for (int i = 0; i < history.size(); i++) {
+            MessageResponse message = history.get(i);
             String role = message.getRole();
             String content = message.getContent();
+
             requestBodyBuilder.append("{ \"role\": \"").append(role).append("\", \"content\": \"").append(content).append("\" }");
-            if (i != history1.size() - 1) {
+
+            if (i != history.size() - 1) {
                 requestBodyBuilder.append(", ");
             }
         }
+
         requestBodyBuilder.append(" ]");
+
 
         String requestBody = "{ " +
                 "\"chat_history\": " + requestBodyBuilder.toString() + ", " +
@@ -227,6 +234,9 @@ public class ChatService {
                 "\"stream\": true" +
                 "}";
 
+        System.out.println(requestBody);
+        System.out.println(history1);
+        System.out.println(111111);
         WebClient webClient = WebClient.create();
 
         Flux<String> res = webClient.post()

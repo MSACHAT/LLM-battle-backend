@@ -121,6 +121,27 @@ public class ConversationService {
         return messageResponses;
     }
 
+    public List<MessageResponse> buildBattleMessageResponses(String conversationId) {
+        List<MessageResponse> messageResponses = new ArrayList<>();
+        List<MessageDetail> messageDetails = getMessageDetailsByBattleConversationId(conversationId);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+
+        JsonNode allMessageResponsesJsonNode = null;
+
+        allMessageResponsesJsonNode = objectMapper.valueToTree(messageDetails);
+        for (MessageDetail messageDetail : messageDetails) {
+            MessageResponse responseDetail = new MessageResponse();
+            responseDetail.setRole(messageDetail.getRole());
+            responseDetail.setContent(messageDetail.getContent());
+            responseDetail.setContentType(messageDetail.getContentType());
+            responseDetail.setMessageId(messageDetail.getId());
+
+            messageResponses.add(responseDetail);
+        }
+        return messageResponses;
+    }
+
 
     public List<List> battleMessageResponses(String conversationId) {
         List<List> messageResponses = new ArrayList<>();
