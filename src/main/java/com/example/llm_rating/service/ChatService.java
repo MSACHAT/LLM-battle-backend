@@ -5,6 +5,8 @@ import com.example.llm_rating.repository.BattleConversationRepository;
 import com.example.llm_rating.repository.ConversationRepository;
 import com.example.llm_rating.repository.MessageDetailRepository;
 import com.example.llm_rating.repository.ModelRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -85,6 +87,9 @@ public class ChatService {
         }
     }
 
+    private static final ThreadLocal<String> threadLocalFulltext = ThreadLocal.withInitial(() -> "");
+
+
     public Flux<String> getStreamAnswer(String contentType, String query1, List<MessageResponse> history1, String conversationId) {
         String index = String.valueOf(history1.size());
 
@@ -135,6 +140,8 @@ public class ChatService {
                 "}";
 
 
+        System.out.println(requestBody);
+        System.out.println(1111111);
         WebClient webClient = WebClient.create();
         // 发送 POST 请求，并返回响应的Flux
         Flux<String> res = webClient.post()
@@ -149,9 +156,11 @@ public class ChatService {
         fulltext = "";
 
         res.doOnComplete(() -> {
+                    String finalFulltext = threadLocalFulltext.get();
+                    threadLocalFulltext.remove(); // 重置ThreadLocal变量
 
                     MessageDetail messageDetail = new MessageDetail(
-                            fulltext,
+                            finalFulltext,
                             "text",
                             "assistant");
                     MessageDetail messageMongo = messageDetailRepository.save(messageDetail);
@@ -162,12 +171,14 @@ public class ChatService {
                     try {
                         JsonNode message = mapper.readTree(event);
                         if (message.has("message") && message.get("message").get("type").asText().equals("answer")) {
-                            fulltext += message.get("message").get("content").asText();
+                            // 使用set()方法来更新ThreadLocal变量的值
+                            threadLocalFulltext.set(threadLocalFulltext.get() + message.get("message").get("content").asText());
                         }
-                    } catch (Exception e) {
+                    } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
                 });
+
         return res;
     }
 
@@ -204,20 +215,25 @@ public class ChatService {
         alive.put(conversationId + index, true);
 
         // 设置请求体
-
+        List<MessageResponse> history = history1;
 
         StringBuilder requestBodyBuilder = new StringBuilder();
         requestBodyBuilder.append("[ ");
-        for (int i = 0; i < history1.size(); i++) {
-            MessageResponse message = history1.get(i);
+
+        for (int i = 0; i < history.size(); i++) {
+            MessageResponse message = history.get(i);
             String role = message.getRole();
             String content = message.getContent();
+
             requestBodyBuilder.append("{ \"role\": \"").append(role).append("\", \"content\": \"").append(content).append("\" }");
-            if (i != history1.size() - 1) {
+
+            if (i != history.size() - 1) {
                 requestBodyBuilder.append(", ");
             }
         }
+
         requestBodyBuilder.append(" ]");
+
 
         String requestBody = "{ " +
                 "\"chat_history\": " + requestBodyBuilder.toString() + ", " +
@@ -227,6 +243,9 @@ public class ChatService {
                 "\"stream\": true" +
                 "}";
 
+        System.out.println(requestBody);
+        System.out.println(history1);
+        System.out.println(111111);
         WebClient webClient = WebClient.create();
 
         Flux<String> res = webClient.post()

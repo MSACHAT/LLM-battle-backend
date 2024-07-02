@@ -213,6 +213,8 @@ public class ChatController {
 
 
         List<MessageResponse> history = conversationService.buildMessageResponses(conversationId);
+        System.out.println(history);
+        System.out.println("History");
 
 
         if (history.isEmpty()) {
