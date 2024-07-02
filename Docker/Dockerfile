@@ -1,5 +1,5 @@
 FROM amazoncorretto:21
-LABEL authors="zhang"
+LABEL authors="ababcdcd"
 WORKDIR /app
 COPY ../.. /app
 EXPOSE 8087
