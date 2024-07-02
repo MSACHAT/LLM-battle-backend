@@ -44,7 +44,7 @@ public class ScheduledTasks {
 
     }
 
-    @Scheduled(fixedRate = 3600000) // 每小时运行一次
+    @Scheduled(fixedRate = 3600000)
     @CacheEvict(value = "arenaTableCache", allEntries = true)
     public void evictAllCache() throws IOException {
         getArenaTable.getArenaTable();
