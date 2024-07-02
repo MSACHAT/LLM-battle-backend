@@ -12,13 +12,14 @@ import org.springframework.data.mongodb.core.mapping.Field;
 public class Model {
     @Id
     private String id;
+
     @Field("bot_id")
     private String botId;
 
     @Field("knowledge_cutoff")
     private String knowledgeCutoff;
 
-    private String lisence;
+    private String licence;
 
     private String organization;
     @Field("model_name")
@@ -26,55 +27,5 @@ public class Model {
     private String token;
     private String url;
 
-    public String getKnowledgeCutoff() {
-        return knowledgeCutoff;
-    }
 
-    public void setKnowledgeCutoff(String knowledgeCutoff) {
-        this.knowledgeCutoff = knowledgeCutoff;
-    }
-
-    public String getLisence() {
-        return lisence;
-    }
-
-    public void setLisence(String lisence) {
-        this.lisence = lisence;
-    }
-
-    public String getOrganization() {
-        return organization;
-    }
-
-    public void setOrganization(String organization) {
-        this.organization = organization;
-    }
-
-    public String getBotId() {
-        return botId;
-    }
-
-    public void setBotId(String botId) {
-        this.botId = botId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getModelName() {
-        return modelName;
-    }
-
-    public void setModelName(String modelName) {
-        this.modelName = modelName;
-    }
-
-
-// Getters and Setters
-    // ...
 }

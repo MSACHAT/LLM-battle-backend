@@ -3,21 +3,29 @@ package com.example.llm_rating.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CommunicationService {
 
 
     private final OkHttpClient okHttpClient;
 
+    @Value("${api.leaderboard-url}")
+    private String getLeaderBoardUrl;
+
+    @Value("${api.computeELO-url}")
+    private String computeEloUrl;
+
     public JsonNode getLeaderBoard() throws IOException {
         Request request = new Request.Builder()
-                .url("http://127.0.0.1:8000/api/v1/leaderboard")
+                .url(getLeaderBoardUrl)
                 .build();
 
         try (Response response = okHttpClient.newCall(request).execute()) {
@@ -38,7 +46,7 @@ public class CommunicationService {
         RequestBody body = RequestBody.create(json, JSON);
 
         Request request = new Request.Builder()
-                .url("http://localhost:8000/api/v1/compute_elo")
+                .url(computeEloUrl)
                 .post(body)
                 .build();
 
