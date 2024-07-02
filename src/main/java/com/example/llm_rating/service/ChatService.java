@@ -5,6 +5,8 @@ import com.example.llm_rating.repository.BattleConversationRepository;
 import com.example.llm_rating.repository.ConversationRepository;
 import com.example.llm_rating.repository.MessageDetailRepository;
 import com.example.llm_rating.repository.ModelRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -85,6 +87,9 @@ public class ChatService {
         }
     }
 
+    private static final ThreadLocal<String> threadLocalFulltext = ThreadLocal.withInitial(() -> "");
+
+
     public Flux<String> getStreamAnswer(String contentType, String query1, List<MessageResponse> history1, String conversationId) {
         String index = String.valueOf(history1.size());
 
@@ -151,9 +156,11 @@ public class ChatService {
         fulltext = "";
 
         res.doOnComplete(() -> {
+                    String finalFulltext = threadLocalFulltext.get();
+                    threadLocalFulltext.remove(); // 重置ThreadLocal变量
 
                     MessageDetail messageDetail = new MessageDetail(
-                            fulltext,
+                            finalFulltext,
                             "text",
                             "assistant");
                     MessageDetail messageMongo = messageDetailRepository.save(messageDetail);
@@ -164,12 +171,14 @@ public class ChatService {
                     try {
                         JsonNode message = mapper.readTree(event);
                         if (message.has("message") && message.get("message").get("type").asText().equals("answer")) {
-                            fulltext += message.get("message").get("content").asText();
+                            // 使用set()方法来更新ThreadLocal变量的值
+                            threadLocalFulltext.set(threadLocalFulltext.get() + message.get("message").get("content").asText());
                         }
-                    } catch (Exception e) {
+                    } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
                 });
+
         return res;
     }
 
