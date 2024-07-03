@@ -84,7 +84,7 @@ public class BattleController {
         String userId = auth != null ? auth.getName() : null;
 
 
-        String battleId = (String) requestBody.get("battle_id");
+        String battleId = (String) requestBody.get("battle_id_t");
         List<String> conversationList = chatService.getIdFromBattleId(battleId);
 
         String conversationId1 = conversationList.get(0);
