@@ -70,7 +70,9 @@ public class GetArenaTable {
         Object eloTable= communicationService.getLeaderBoard();
         List<DataSource> sourceList = objectMapper.convertValue(eloTable, new TypeReference<List<DataSource>>() {});
 
-        return sourceList;
+        return sourceList.stream()
+                .map(getTableService::processData)
+                .toList();
     }
 
     @GetMapping("/post")
