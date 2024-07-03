@@ -19,7 +19,7 @@ public class Model {
     @Field("knowledge_cutoff")
     private String knowledgeCutoff;
 
-    private String licence;
+    private String lisence;
 
     private String organization;
     @Field("model_name")

@@ -22,11 +22,13 @@ public class GetTableService {
             modelInfo.ifPresent(model -> {
                 item.setKnowledgeCutoff(model.getKnowledgeCutoff());
                 item.setOrganization(model.getOrganization());
-                item.setLicense(model.getLicence());
+                item.setLicense(model.getLisence());
             });
         }
 
         return dataSource;
 
     }
+
+
 }

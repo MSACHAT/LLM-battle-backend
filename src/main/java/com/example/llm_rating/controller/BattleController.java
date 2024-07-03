@@ -166,7 +166,7 @@ public class BattleController {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         String formattedDateTime = now.format(formatter);
         String fileName = formattedDateTime + "-conv.json";
-        voteService.appendToJsonFile(fileName, response);
+        voteService.appendToJsonFile("./logs/"+fileName, response);
 
         return ResponseEntity.ok().body(response);
     }
