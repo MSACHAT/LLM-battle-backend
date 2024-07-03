@@ -10,11 +10,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ArenaTableItem {
-    private String rank;
-    private String model;
-    private int elo;
-    private String ci95;
-    private int votes;
+    private String Rank;
+    private String Model;
+    private int Elo;
+    private String CI;
+    private int Votes;
     private String knowledgeCutoff;
     private String organization;
     private String license;

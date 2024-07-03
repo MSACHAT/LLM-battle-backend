@@ -7,8 +7,6 @@ import com.example.llm_rating.repository.ModelRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,7 +22,7 @@ public class GetTableService {
             modelInfo.ifPresent(model -> {
                 item.setKnowledgeCutoff(model.getKnowledgeCutoff());
                 item.setOrganization(model.getOrganization());
-                item.setLicense(model.getLisence());
+                item.setLicense(model.getLicence());
             });
         }
 

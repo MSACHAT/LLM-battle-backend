@@ -36,7 +36,7 @@ public class GetArenaTable {
     @Cacheable("arenaTableCache")
     public List<DataSource> getArenaTable() throws IOException {
 
-        JsonNode eloTable= communicationService.getLeaderBoard();
+        Object eloTable= communicationService.getLeaderBoard();
         List<DataSource> sourceList = objectMapper.convertValue(eloTable, new TypeReference<List<DataSource>>() {});
 
         return sourceList.stream()
@@ -63,5 +63,20 @@ public class GetArenaTable {
             communicationService.computeElo();
         }
         return true;
+    }
+
+    @GetMapping("/arena_table/test")
+    public Object testGetArenaTable() throws IOException {
+        Object eloTable= communicationService.getLeaderBoard();
+        List<DataSource> sourceList = objectMapper.convertValue(eloTable, new TypeReference<List<DataSource>>() {});
+
+        return sourceList.stream()
+                .map(getTableService::processData)
+                .toList();
+    }
+
+    @GetMapping("/post")
+    public String testComputeElo() throws IOException {
+        return communicationService.computeElo();
     }
 }

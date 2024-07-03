@@ -37,7 +37,7 @@ public class ScheduledTasks {
             try {
                 communicationService.computeElo();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                System.out.println(e);
             }
         });
 

@@ -3,21 +3,29 @@ package com.example.llm_rating.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CommunicationService {
 
 
     private final OkHttpClient okHttpClient;
 
+    @Value("${api.leaderboard-url}")
+    private String getLeaderBoardUrl;
+
+    @Value("${api.computeELO-url}")
+    private String computeEloUrl;
+
     public JsonNode getLeaderBoard() throws IOException {
         Request request = new Request.Builder()
-                .url("http://127.0.0.1:8000/api/v1/leaderboard")
+                .url(getLeaderBoardUrl)
                 .build();
 
         try (Response response = okHttpClient.newCall(request).execute()) {
@@ -33,24 +41,21 @@ public class CommunicationService {
     }
 
     public String computeElo() throws IOException {
-        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-        String json = "{\"key\":\"value\"}";
-        RequestBody body = RequestBody.create(json, JSON);
+    Request request = new Request.Builder()
+            .url(computeEloUrl) // 假设computeEloUrl已经定义并指向正确的URL
+            .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), "")) // 使用空字符串作为请求体
+            .build();
 
-        Request request = new Request.Builder()
-                .url("http://localhost:8000/api/v1/compute_elo")
-                .post(body)
-                .build();
-
-        try (Response response = okHttpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response);
-            }
-
-            assert response.body() != null;
-            return response.body().string();
+    try (Response response = okHttpClient.newCall(request).execute()) {
+        if (!response.isSuccessful()) {
+            throw new IOException("Unexpected code " + response);
         }
+
+        assert response.body() != null;
+        return response.body().string();
     }
+}
+
 
 
 }
