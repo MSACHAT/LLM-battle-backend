@@ -32,7 +32,7 @@ public class ScheduledTasks {
         LocalDateTime yesterday = now.minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         String formattedYesterday = yesterday.format(formatter);
-        CompletableFuture<PutObjectResult> future = fileService.uploadFile("llmbattle",formattedYesterday+"-conv.json","Logs/");
+        CompletableFuture<PutObjectResult> future = fileService.uploadFile("llmbattle","Logs/"+formattedYesterday+"-conv.json","./logs/"+formattedYesterday+"-conv.json");
         future.thenAccept(putObjectResult -> {
             try {
                 communicationService.computeElo();

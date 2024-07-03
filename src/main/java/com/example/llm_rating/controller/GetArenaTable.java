@@ -1,8 +1,12 @@
 package com.example.llm_rating.controller;
 
+import com.aliyun.oss.model.PutObjectResult;
+import com.aliyuncs.exceptions.ClientException;
 import com.example.llm_rating.DTO.DataSource;
 import com.example.llm_rating.service.CommunicationService;
+import com.example.llm_rating.service.FileService;
 import com.example.llm_rating.service.GetTableService;
+import com.example.llm_rating.service.VoteService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +19,10 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @RestController
@@ -25,9 +32,11 @@ public class GetArenaTable {
 
     private final CommunicationService communicationService;
 
+    private final FileService fileService;
 
     private final GetTableService getTableService;
 
+    private final VoteService voteService;
     private final ObjectMapper objectMapper;
 
     private final RetryTemplate retryTemplate;
@@ -78,5 +87,15 @@ public class GetArenaTable {
     @GetMapping("/post")
     public String testComputeElo() throws IOException {
         return communicationService.computeElo();
+    }
+
+    @PostMapping("/append")
+    public String testAppendToLog() throws ClientException {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime yesterday = now;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String formattedYesterday = yesterday.format(formatter);
+        CompletableFuture<PutObjectResult> future = fileService.uploadFile("llmbattle","Logs/"+formattedYesterday+"-conv.json","./logs/"+formattedYesterday+"-conv.json");
+        return "ok";
     }
 }

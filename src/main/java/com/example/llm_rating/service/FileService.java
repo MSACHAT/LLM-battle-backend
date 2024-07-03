@@ -21,6 +21,7 @@ public class FileService {
 
     @Async
     public CompletableFuture<PutObjectResult> uploadFile(String bucketName, String objectName, String filePath) throws ClientException {
+        System.out.println(filePath);
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, new File(filePath));
         PutObjectResult Result = ossClient.ossClient().putObject(putObjectRequest);
         return CompletableFuture.completedFuture(Result);
