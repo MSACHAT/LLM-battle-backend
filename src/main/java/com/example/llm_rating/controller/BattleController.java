@@ -157,7 +157,7 @@ public class BattleController {
         states.add(state2);
 
         HashMap<String, Object> response = new HashMap<>();
-        response.put("type", "tievote");
+        response.put("type", vote);
         response.put("models", Arrays.asList(modelA, modelB));
         response.put("states", states);
         response.put("uid", userId);
