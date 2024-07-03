@@ -72,4 +72,9 @@ public class GetArenaTable {
 
         return sourceList;
     }
+
+    @GetMapping("/post")
+    public String testComputeElo() throws IOException {
+        return communicationService.computeElo();
+    }
 }

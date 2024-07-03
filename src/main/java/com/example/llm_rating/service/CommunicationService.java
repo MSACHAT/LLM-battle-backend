@@ -41,24 +41,21 @@ public class CommunicationService {
     }
 
     public String computeElo() throws IOException {
-        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-        String json = "{\"key\":\"value\"}";
-        RequestBody body = RequestBody.create(json, JSON);
+    Request request = new Request.Builder()
+            .url(computeEloUrl) // 假设computeEloUrl已经定义并指向正确的URL
+            .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), "")) // 使用空字符串作为请求体
+            .build();
 
-        Request request = new Request.Builder()
-                .url(computeEloUrl)
-                .post(body)
-                .build();
-
-        try (Response response = okHttpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response);
-            }
-
-            assert response.body() != null;
-            return response.body().string();
+    try (Response response = okHttpClient.newCall(request).execute()) {
+        if (!response.isSuccessful()) {
+            throw new IOException("Unexpected code " + response);
         }
+
+        assert response.body() != null;
+        return response.body().string();
     }
+}
+
 
 
 }
