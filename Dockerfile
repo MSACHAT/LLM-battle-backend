@@ -8,7 +8,7 @@ WORKDIR /app
 COPY target/llm-rating-*.jar /app/application.jar
 
 # 暴露应用程序的端口
-EXPOSE 8085
+EXPOSE 8087
 
 ENV SPRING_PROFILES_ACTIVE=prod
 
