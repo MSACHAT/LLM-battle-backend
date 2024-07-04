@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
@@ -112,36 +114,35 @@ public class ChatService {
 
         String query = query1;
 
-        List<MessageResponse> history = history1;
+//        List<MessageResponse> history = history1;
+//
+//        StringBuilder requestBodyBuilder = new StringBuilder();
+//        requestBodyBuilder.append("[ ");
+//
+//        for (int i = 0; i < history.size(); i++) {
+//            MessageResponse message = history.get(i);
+//            String role = message.getRole();
+//            String content = message.getContent();
+//
+//            requestBodyBuilder.append("{ \"role\": \"").append(role).append("\", \"content\": \"").append(content).append("\" }");
+//
+//            if (i != history.size() - 1) {
+//                requestBodyBuilder.append(", ");
+//            }
+//        }
+//
+//        requestBodyBuilder.append(" ]");
 
-        StringBuilder requestBodyBuilder = new StringBuilder();
-        requestBodyBuilder.append("[ ");
-
-        for (int i = 0; i < history.size(); i++) {
-            MessageResponse message = history.get(i);
-            String role = message.getRole();
-            String content = message.getContent();
-
-            requestBodyBuilder.append("{ \"role\": \"").append(role).append("\", \"content\": \"").append(content).append("\" }");
-
-            if (i != history.size() - 1) {
-                requestBodyBuilder.append(", ");
-            }
-        }
-
-        requestBodyBuilder.append(" ]");
-
-        String requestBody = "{ " +
-                "\"chat_history\": " + requestBodyBuilder.toString() + ", " +
-                "\"bot_id\": \"" + botId + "\", " +
-                "\"user\": \"1481156807020\", " +
-                "\"query\": \"" + query + "\", " +
-                "\"stream\": true" +
-                "}";
-
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("chat_history",history1);
+        requestBody.put("bot_id", botId);
+        requestBody.put("user", "1481156807020");
+        requestBody.put("query", query1);
+        requestBody.put("stream", true);
 
         System.out.println(requestBody);
-        System.out.println(1111111);
+        System.out.println(history1);
+        System.out.println(22222);
         WebClient webClient = WebClient.create();
         // 发送 POST 请求，并返回响应的Flux
         Flux<String> res = webClient.post()
@@ -215,47 +216,55 @@ public class ChatService {
         alive.put(conversationId + index, true);
 
         // 设置请求体
-        List<MessageResponse> history = history1;
+//        List<MessageResponse> history = history1;
+//
+//        StringBuilder requestBodyBuilder = new StringBuilder();
+//        requestBodyBuilder.append("[ ");
+//
+//        for (int i = 0; i < history.size(); i++) {
+//            MessageResponse message = history.get(i);
+//            String role = message.getRole();
+//            String content = message.getContent();
+//
+//            requestBodyBuilder.append("{ \"role\": \"").append(role).append("\", \"content\": \"").append(content).append("\" }");
+//
+//            if (i != history.size() - 1) {
+//                requestBodyBuilder.append(", ");
+//            }
+//        }
+//
+//        requestBodyBuilder.append(" ]");
+//
 
-        StringBuilder requestBodyBuilder = new StringBuilder();
-        requestBodyBuilder.append("[ ");
+//        String requestBody = "{ " +
+//                "\"chat_history\": " + requestBodyBuilder.toString() + ", " +
+//                "\"bot_id\": \"" + botId + "\", " +
+//                "\"user\": \"1481156807020\", " +
+//                "\"query\": \"" + query1 + "\", " +
+//                "\"stream\": true" +
+//                "}";
 
-        for (int i = 0; i < history.size(); i++) {
-            MessageResponse message = history.get(i);
-            String role = message.getRole();
-            String content = message.getContent();
-
-            requestBodyBuilder.append("{ \"role\": \"").append(role).append("\", \"content\": \"").append(content).append("\" }");
-
-            if (i != history.size() - 1) {
-                requestBodyBuilder.append(", ");
-            }
-        }
-
-        requestBodyBuilder.append(" ]");
-
-
-        String requestBody = "{ " +
-                "\"chat_history\": " + requestBodyBuilder.toString() + ", " +
-                "\"bot_id\": \"" + botId + "\", " +
-                "\"user\": \"1481156807020\", " +
-                "\"query\": \"" + query1 + "\", " +
-                "\"stream\": true" +
-                "}";
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("chat_history",history1);
+        requestBody.put("bot_id", botId);
+        requestBody.put("user", "1481156807020");
+        requestBody.put("query", query1);
+        requestBody.put("stream", true);
 
         System.out.println(requestBody);
         System.out.println(history1);
-        System.out.println(111111);
+        System.out.println(22222);
         WebClient webClient = WebClient.create();
 
         Flux<String> res = webClient.post()
                 .uri(targetUrl)
                 .headers(httpHeaders -> httpHeaders.addAll(headers))
-                .bodyValue(requestBody)
+                .body(BodyInserters.fromValue(requestBody))
                 .retrieve()
                 .bodyToFlux(String.class)
                 .filter(wrapPredicate(data -> streamFilter(data)))
                 .map(wrapFunction(data -> addModelName(data, model)))
+                .concatWith(Flux.just("{\"event\": \"done\"}"))
                 .takeWhile(data -> {
                     return alive.get(conversationId + index);
                 });
