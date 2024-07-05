@@ -38,8 +38,10 @@ public class ConversationService {
 
         // 从剩下的元素中随机选择第二个元素
         for (int i = 0; i < modelList.size(); i++) {
-            if (i != index1) {
-                int index2 = random.nextInt(modelList.size() - 1);
+                int index2 = random.nextInt(modelList.size() );
+            System.out.print("index2:");
+            System.out.println(index2);
+            if (index2 != index1) {
                 result.add(modelList.get(index2));
                 break; // 找到第二个元素后退出循环
             }
@@ -47,6 +49,21 @@ public class ConversationService {
 
         return result;
     }
+
+//    Random random = new Random();
+//    List<String> result = new ArrayList<>();
+//    int index1 = random.nextInt(modelList.size());
+//        result.add(modelList.get(index1));
+//
+//
+//    // 从剩下的元素中随机选择第二个元素
+//        modelList.remove(index1);
+//    int index2 = random.nextInt(modelList.size() - 1);
+//        result.add(modelList.get(index2));
+//
+//        System.out.println(result);
+//
+//        return result;
 
     public Map<String, String> createConversation(String modelName, String userId) {
 
