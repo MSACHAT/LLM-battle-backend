@@ -96,10 +96,7 @@ public class ChatService {
     public Flux<String> getStreamAnswer(String contentType, String query1, List<MessageResponse> history1, String conversationId) throws Exception {
         String index = String.valueOf(history1.size());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiToken);
-        headers.set("Content-Type", "application/json");
-        headers.set("Connection", "keep-alive");
+
         MessageDetail chat = new MessageDetail(
                 query1,
                 "text",
@@ -110,29 +107,17 @@ public class ChatService {
         Optional<Conversation> con = conversationRepository.findById(conversationId);
         Optional<Model> data2 = modelRepository.findById(con.get().getModelId());
         String botId = data2.get().getBotId();
+        String url = data2.get().getUrl();
+        String token = data2.get().getToken();
 
         alive.put(conversationId + index, true);
 
         String query = query1;
 
-//        List<MessageResponse> history = history1;
-//
-//        StringBuilder requestBodyBuilder = new StringBuilder();
-//        requestBodyBuilder.append("[ ");
-//
-//        for (int i = 0; i < history.size(); i++) {
-//            MessageResponse message = history.get(i);
-//            String role = message.getRole();
-//            String content = message.getContent();
-//
-//            requestBodyBuilder.append("{ \"role\": \"").append(role).append("\", \"content\": \"").append(content).append("\" }");
-//
-//            if (i != history.size() - 1) {
-//                requestBodyBuilder.append(", ");
-//            }
-//        }
-//
-//        requestBodyBuilder.append(" ]");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        headers.set("Content-Type", "application/json");
+        headers.set("Connection", "keep-alive");
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("chat_history",history1);
@@ -147,7 +132,7 @@ public class ChatService {
         WebClient webClient = WebClient.create();
         // 发送 POST 请求，并返回响应的Flux
         Flux<String> flux = webClient.post()
-                .uri(targetUrl)
+                .uri(url)
                 .headers(httpHeaders -> httpHeaders.addAll(headers))
                 .body(BodyInserters.fromValue(requestBody))
                 .retrieve()
@@ -205,46 +190,48 @@ public class ChatService {
 
     public Flux<String> getStreamAnswer2(String contentType, String query1, List<MessageResponse> history1, String conversationId, String modelName, String model) throws Exception {
 
-        String botId = modelRepository.findByModelName(modelName).orElseThrow().getBotId();
+//        String botId = modelRepository.findByModelName(modelName).orElseThrow().getBotId();
+//        String index = String.valueOf(history1.size());
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.set("Authorization", "Bearer " + apiToken);
+//        headers.set("Content-Type", "application/json");
+//        headers.set("Connection", "keep-alive");
+//
+//        MessageDetail chat = new MessageDetail(query1, "text", "user");
+//        MessageDetail userchat = messageDetailRepository.save(chat);
+//        saveMessageInBattleConversation(conversationId, userchat);
+//        alive.put(conversationId + index, true);
+//
+//        Map<String, Object> requestBody = new HashMap<>();
+//        requestBody.put("chat_history",history1);
+//        requestBody.put("bot_id", botId);
+//        requestBody.put("user", "1481156807020");
+//        requestBody.put("query", query1);
+//        requestBody.put("stream", true);
         String index = String.valueOf(history1.size());
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiToken);
-        headers.set("Content-Type", "application/json");
-        headers.set("Connection", "keep-alive");
 
-        MessageDetail chat = new MessageDetail(query1, "text", "user");
+
+        MessageDetail chat = new MessageDetail(
+                query1,
+                "text",
+                "user");
         MessageDetail userchat = messageDetailRepository.save(chat);
+
         saveMessageInBattleConversation(conversationId, userchat);
+        Optional<BattleConversation> con = battleConversationRepository.findById(conversationId);
+        Optional<Model> data2 = modelRepository.findById(con.get().getModelId());
+        String botId = data2.get().getBotId();
+        String url1 = data2.get().getUrl();
+        String token2 = data2.get().getToken();
+
         alive.put(conversationId + index, true);
 
-        // 设置请求体
-//        List<MessageResponse> history = history1;
-//
-//        StringBuilder requestBodyBuilder = new StringBuilder();
-//        requestBodyBuilder.append("[ ");
-//
-//        for (int i = 0; i < history.size(); i++) {
-//            MessageResponse message = history.get(i);
-//            String role = message.getRole();
-//            String content = message.getContent();
-//
-//            requestBodyBuilder.append("{ \"role\": \"").append(role).append("\", \"content\": \"").append(content).append("\" }");
-//
-//            if (i != history.size() - 1) {
-//                requestBodyBuilder.append(", ");
-//            }
-//        }
-//
-//        requestBodyBuilder.append(" ]");
-//
+        String query = query1;
 
-//        String requestBody = "{ " +
-//                "\"chat_history\": " + requestBodyBuilder.toString() + ", " +
-//                "\"bot_id\": \"" + botId + "\", " +
-//                "\"user\": \"1481156807020\", " +
-//                "\"query\": \"" + query1 + "\", " +
-//                "\"stream\": true" +
-//                "}";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token2);
+        headers.set("Content-Type", "application/json");
+        headers.set("Connection", "keep-alive");
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("chat_history",history1);
@@ -255,11 +242,12 @@ public class ChatService {
 
         System.out.println(requestBody);
         System.out.println(history1);
-        System.out.println(22222);
+        System.out.println("###########");
+
         WebClient webClient = WebClient.create();
 
         Flux<String> flux = webClient.post()
-                .uri(targetUrl)
+                .uri(url1)
                 .headers(httpHeaders -> httpHeaders.addAll(headers))
                 .body(BodyInserters.fromValue(requestBody))
                 .retrieve()

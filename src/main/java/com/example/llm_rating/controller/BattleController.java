@@ -54,7 +54,7 @@ public class BattleController {
     public ResponseEntity<String> createConversation(Authentication auth) {
         String userId = auth != null ? auth.getName() : null;
 
-        List<String> models = Arrays.asList("gpt4", "gemini1.5 flash", "Gemini 1.5 pro", "gpt4o");
+        List<String> models = Arrays.asList("gpt4", "gemini1.5 flash", "Gemini 1.5 pro", "gpt4o","Moonshot 8k","豆包","通义千问","miniMax","gpt3.5");
 
         String battleId = UUID.randomUUID().toString();
         List<String> id = conversationService.getNewRandomConversationId(models);
