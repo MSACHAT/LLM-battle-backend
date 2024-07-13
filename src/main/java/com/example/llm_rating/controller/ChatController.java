@@ -166,12 +166,13 @@ public class ChatController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping(PATH)
+    @PatchMapping(value = "/conversation/title")
     public ResponseEntity<?> updateConversationTitle(@RequestBody Map<String, String> request) {
 
         String conversationId = request.get("conversation_id");
 
         String title = request.get("title");
+        System.out.println(request);
 
 
         Conversation updatedConversation = conversationService.updateConversationTitle(conversationId, title);
@@ -201,7 +202,7 @@ public class ChatController {
     }
 
     @PostMapping(value = "/conversation/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> newchat(@RequestBody Map<String, String> requestBody) {
+    public Flux<String> newchat(@RequestBody Map<String, String> requestBody) throws Exception {
         String contentType = requestBody.get("content_type");
         String conversationId = requestBody.get("conversation_id");
         // Map<String, Object> extra = request.getExtra();

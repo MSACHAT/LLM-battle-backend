@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
 
 import java.util.*;
@@ -92,7 +93,7 @@ public class ChatService {
     private static final ThreadLocal<String> threadLocalFulltext = ThreadLocal.withInitial(() -> "");
 
 
-    public Flux<String> getStreamAnswer(String contentType, String query1, List<MessageResponse> history1, String conversationId) {
+    public Flux<String> getStreamAnswer(String contentType, String query1, List<MessageResponse> history1, String conversationId) throws Exception {
         String index = String.valueOf(history1.size());
 
         HttpHeaders headers = new HttpHeaders();
@@ -145,43 +146,44 @@ public class ChatService {
         System.out.println(22222);
         WebClient webClient = WebClient.create();
         // 发送 POST 请求，并返回响应的Flux
-        Flux<String> res = webClient.post()
+        Flux<String> flux = webClient.post()
                 .uri(targetUrl)
                 .headers(httpHeaders -> httpHeaders.addAll(headers))
-                .bodyValue(requestBody)
+                .body(BodyInserters.fromValue(requestBody))
                 .retrieve()
                 .bodyToFlux(String.class)
-                .takeWhile(data -> alive.get(conversationId + index));
-
-
-        fulltext = "";
-
-        res.doOnComplete(() -> {
-                    String finalFulltext = threadLocalFulltext.get();
-                    threadLocalFulltext.remove(); // 重置ThreadLocal变量
-
-                    MessageDetail messageDetail = new MessageDetail(
-                            finalFulltext,
-                            "text",
-                            "assistant");
-                    MessageDetail messageMongo = messageDetailRepository.save(messageDetail);
-                    saveMessageInConversation(conversationId, messageMongo);
-                })
-                .subscribe(event -> {
-                    ObjectMapper mapper = new ObjectMapper();
-                    try {
-                        JsonNode message = mapper.readTree(event);
-                        if (message.has("message") && message.get("message").get("type").asText().equals("answer")) {
-                            // 使用set()方法来更新ThreadLocal变量的值
-                            threadLocalFulltext.set(threadLocalFulltext.get() + message.get("message").get("content").asText());
-                        }
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
+                .filter(wrapPredicate(data -> streamFilter(data)))
+                .concatWith(Flux.just("{\"event\": \"done\"}"))
+                .takeWhile(data -> {
+                    return alive.get(conversationId + index);
                 });
 
-        return res;
+
+        ConnectableFlux<String> connectableFlux = flux.publish();
+
+        connectableFlux
+                .reduce("", wrapBiFunction((acc, event) -> {
+                    JsonNode eventJson = objectMapper.readTree(event);
+                    if (!eventJson.has("message")) {
+                        return acc;
+                    }
+                    return acc + eventJson.get("message").get("content").asText();
+                }))
+                .subscribe(event -> {
+                    ObjectMapper mapper = new ObjectMapper();
+                    MessageDetail chat2 = new MessageDetail(
+                            event,
+                            "text",
+                            "assistant");
+                    MessageDetail userchat2 = messageDetailRepository.save(chat2);
+                    saveMessageInConversation(conversationId, userchat2);
+                });
+
+        connectableFlux.connect();
+
+        return connectableFlux;
     }
+
 
     private String getModelName(String conversationId) {
         return conversationRepository.findById(conversationId).get().getModelName();
@@ -256,7 +258,7 @@ public class ChatService {
         System.out.println(22222);
         WebClient webClient = WebClient.create();
 
-        Flux<String> res = webClient.post()
+        Flux<String> flux = webClient.post()
                 .uri(targetUrl)
                 .headers(httpHeaders -> httpHeaders.addAll(headers))
                 .body(BodyInserters.fromValue(requestBody))
@@ -264,13 +266,15 @@ public class ChatService {
                 .bodyToFlux(String.class)
                 .filter(wrapPredicate(data -> streamFilter(data)))
                 .map(wrapFunction(data -> addModelName(data, model)))
-                .concatWith(Flux.just("{\"event\": \"done\"}"))
+//                .concatWith(Flux.just("{\"event\": \"done\"}"))
                 .takeWhile(data -> {
                     return alive.get(conversationId + index);
                 });
 
 
-        res
+        ConnectableFlux<String> connectableFlux = flux.publish();
+
+        connectableFlux
                 .reduce("", wrapBiFunction((acc, event) -> {
                     JsonNode eventJson = objectMapper.readTree(event);
                     if (!eventJson.has("message")) {
@@ -288,7 +292,9 @@ public class ChatService {
                     saveMessageInBattleConversation(conversationId, userchat2);
                 });
 
-        return res;
+        connectableFlux.connect();
+
+        return connectableFlux;
     }
 
     private boolean streamFilter(String data) throws Exception {
