@@ -49,7 +49,7 @@ public class ChatService {
 
     public void stopped(String conversationId) {
 
-        String index = String.valueOf(conversationService.battleMessageResponses(conversationId).size());
+        String index = String.valueOf(conversationService.buildMessageResponses(conversationId).size());
         alive.replace(conversationId + index, false);
     }
 
@@ -94,7 +94,8 @@ public class ChatService {
 
 
     public Flux<String> getStreamAnswer(String contentType, String query1, List<MessageResponse> history1, String conversationId) throws Exception {
-        String index = String.valueOf(history1.size());
+        String index = String.valueOf(history1.size()+1);
+        alive.put(conversationId + index, true);
 
 
         MessageDetail chat = new MessageDetail(
@@ -142,6 +143,7 @@ public class ChatService {
                 .takeWhile(data -> {
                     return alive.get(conversationId + index);
                 });
+
 
 
         ConnectableFlux<String> connectableFlux = flux.publish();
