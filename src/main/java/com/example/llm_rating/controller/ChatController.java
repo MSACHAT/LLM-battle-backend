@@ -44,6 +44,7 @@ public class ChatController {
         this.modelService = modelService;
         this.objectMapper = objectMapper;
     }
+
     // @GetMapping(value = "/conversations")
     // public ResponseEntity<List>
 
@@ -52,7 +53,19 @@ public class ChatController {
 
         String conversationId = requestBody.get("conversation_id");
 
-        chatService.stopped(conversationId);
+        int length = -1; // 初始化为一个默认值，比如-1，表示未找到
+        if (requestBody.containsKey("lengh")) { // 检查键是否存在
+            try {
+                length = Integer.parseInt(requestBody.get("lengh").toString()); // 尝试转换为整数
+            } catch (NumberFormatException e) {
+                // 处理转换异常，例如设置为-1或者打印错误信息
+                length = -1;
+            }
+        } else {
+            length = -1; // 键不存在，设置为-1
+        }
+
+        chatService.stopped(conversationId , length);
 
         return ResponseEntity.ok("已停止");
     }
@@ -65,8 +78,8 @@ public class ChatController {
 
         String conversationId1 = conversationList.get(0);
         String conversationId2 = conversationList.get(1);
-        chatService.stopped(conversationId1);
-        chatService.stopped(conversationId2);
+        chatService.stopped(conversationId1,-1);
+        chatService.stopped(conversationId2,-1);
 
         return ResponseEntity.ok("已停止");
     }

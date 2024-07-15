@@ -5,8 +5,6 @@ import com.example.llm_rating.repository.BattleConversationRepository;
 import com.example.llm_rating.repository.ConversationRepository;
 import com.example.llm_rating.repository.MessageDetailRepository;
 import com.example.llm_rating.repository.ModelRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.ConnectableFlux;
@@ -27,7 +24,9 @@ import static com.example.llm_rating.config.sec.LambdaExceptionUtil.*;
 
 @Service
 public class ChatService {
+    private static final ThreadLocal<String> threadLocalFulltext = ThreadLocal.withInitial(() -> "");
     Map<String, Boolean> alive = new HashMap<>();
+    Map<String, Integer> longalive = new HashMap<>();
     long transmissionInterval = 1000;
     @Value("${target.api.url}")
     private String targetUrl;
@@ -47,10 +46,13 @@ public class ChatService {
     private ObjectMapper objectMapper;
     private String fulltext = "";
 
-    public void stopped(String conversationId) {
+    public void stopped(String conversationId, int lengh) {
+
 
         String index = String.valueOf(conversationService.buildMessageResponses(conversationId).size());
         alive.replace(conversationId + index, false);
+
+        longalive.replace(conversationId + index, lengh);
     }
 
     public void saveMessageInBattleConversation(String conversationId, MessageDetail userchat) {
@@ -90,13 +92,10 @@ public class ChatService {
         }
     }
 
-    private static final ThreadLocal<String> threadLocalFulltext = ThreadLocal.withInitial(() -> "");
-
-
     public Flux<String> getStreamAnswer(String contentType, String query1, List<MessageResponse> history1, String conversationId) throws Exception {
-        String index = String.valueOf(history1.size()+1);
+        String index = String.valueOf(history1.size() + 1);
         alive.put(conversationId + index, true);
-
+        longalive.put(conversationId + index, -1);
 
         MessageDetail chat = new MessageDetail(
                 query1,
@@ -121,7 +120,7 @@ public class ChatService {
         headers.set("Connection", "keep-alive");
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("chat_history",history1);
+        requestBody.put("chat_history", history1);
         requestBody.put("bot_id", botId);
         requestBody.put("user", "1481156807020");
         requestBody.put("query", query1);
@@ -129,7 +128,7 @@ public class ChatService {
 
         System.out.println(requestBody);
         System.out.println(history1);
-        System.out.println(22222);
+        System.out.println(33333);
         WebClient webClient = WebClient.create();
         // 发送 POST 请求，并返回响应的Flux
         Flux<String> flux = webClient.post()
@@ -145,7 +144,6 @@ public class ChatService {
                 });
 
 
-
         ConnectableFlux<String> connectableFlux = flux.publish();
 
         connectableFlux
@@ -157,7 +155,18 @@ public class ChatService {
                     return acc + eventJson.get("message").get("content").asText();
                 }))
                 .subscribe(event -> {
-                    ObjectMapper mapper = new ObjectMapper();
+
+
+                    System.out.println(event);
+                    System.out.println("event");
+
+                    if (longalive.get(conversationId + index) != -1) {
+                        int contentsize = Math.min(event.length(), longalive.get(conversationId + index));
+                        System.out.println(contentsize);
+                        System.out.println("contentsize");
+                        event = event.substring(contentsize);
+                    } else
+                        System.out.println("这不该啊");
                     MessageDetail chat2 = new MessageDetail(
                             event,
                             "text",
@@ -236,7 +245,7 @@ public class ChatService {
         headers.set("Connection", "keep-alive");
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("chat_history",history1);
+        requestBody.put("chat_history", history1);
         requestBody.put("bot_id", botId);
         requestBody.put("user", "1481156807020");
         requestBody.put("query", query1);
