@@ -54,9 +54,9 @@ public class ChatController {
         String conversationId = requestBody.get("conversation_id");
 
         int length = -1; // 初始化为一个默认值，比如-1，表示未找到
-        if (requestBody.containsKey("lengh")) { // 检查键是否存在
+        if (requestBody.containsKey("length")) { // 检查键是否存在
             try {
-                length = Integer.parseInt(requestBody.get("lengh").toString()); // 尝试转换为整数
+                length = Integer.parseInt(requestBody.get("length").toString()); // 尝试转换为整数
             } catch (NumberFormatException e) {
                 // 处理转换异常，例如设置为-1或者打印错误信息
                 length = -1;
